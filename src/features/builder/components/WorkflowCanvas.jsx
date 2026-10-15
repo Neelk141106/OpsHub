@@ -12,6 +12,14 @@ import {
   Workflow,
   Sparkles,
   Compass,
+  StepForward,
+  RotateCcw,
+  X,
+  CheckCircle2,
+  AlertCircle,
+  AlertTriangle,
+  GitFork,
+  ArrowRight,
 } from 'lucide-react'
 import { useWorkflowStore } from '../store/useWorkflowStore'
 import { WorkflowNode } from '../nodes/WorkflowNode'
@@ -29,6 +37,11 @@ export function WorkflowCanvas() {
   const isPreviewMode = useWorkflowStore((s) => s.isPreviewMode)
   const togglePreviewMode = useWorkflowStore((s) => s.togglePreviewMode)
   const isSimulationMode = useWorkflowStore((s) => s.isSimulationMode)
+  const simulation = useWorkflowStore((s) => s.simulation)
+  const stepForward = useWorkflowStore((s) => s.stepForward)
+  const chooseBranch = useWorkflowStore((s) => s.chooseBranch)
+  const restartSimulation = useWorkflowStore((s) => s.restartSimulation)
+  const exitSimulation = useWorkflowStore((s) => s.exitSimulation)
   const onNodesChange = useWorkflowStore((s) => s.onNodesChange)
   const onEdgesChange = useWorkflowStore((s) => s.onEdgesChange)
   const onConnect = useWorkflowStore((s) => s.onConnect)
@@ -43,19 +56,65 @@ export function WorkflowCanvas() {
   // Register custom node types
   const nodeTypes = useMemo(() => ({ workflowNode: WorkflowNode }), [])
 
-  // Drag and drop handlers (disabled in preview mode)
+  // Currently active simulation node
+  const currentNode =
+    isSimulationMode && simulation?.currentNodeId
+      ? nodes.find((n) => n.id === simulation.currentNodeId)
+      : null
+
+  // Style edges dynamically: In simulation mode, highlight traversed edges with animated glowing stroke
+  const displayEdges = useMemo(() => {
+    const rawEdges = currentDraft.edges || []
+    if (!isSimulationMode) return rawEdges
+
+    const traversedIds = new Set(simulation?.traversedEdgeIds || [])
+    return rawEdges.map((edge) => {
+      const isTraversed = traversedIds.has(edge.id)
+      if (isTraversed) {
+        return {
+          ...edge,
+          animated: true,
+          style: {
+            ...edge.style,
+            stroke: '#f59e0b', // amber-500
+            strokeWidth: 3.5,
+            filter: 'drop-shadow(0 0 5px rgba(245, 158, 11, 0.7))',
+          },
+          markerEnd: {
+            ...edge.markerEnd,
+            color: '#f59e0b',
+          },
+        }
+      }
+      return {
+        ...edge,
+        animated: false,
+        style: {
+          ...edge.style,
+          opacity: 0.3,
+          stroke: isDark ? '#475569' : '#cbd5e1',
+        },
+        markerEnd: {
+          ...edge.markerEnd,
+          color: isDark ? '#475569' : '#cbd5e1',
+        },
+      }
+    })
+  }, [currentDraft.edges, isSimulationMode, simulation?.traversedEdgeIds, isDark])
+
+  // Drag and drop handlers (disabled in preview & simulation modes)
   const onDragOver = useCallback(
     (event) => {
-      if (isPreviewMode) return
+      if (isPreviewMode || isSimulationMode) return
       event.preventDefault()
       event.dataTransfer.dropEffect = 'move'
     },
-    [isPreviewMode]
+    [isPreviewMode, isSimulationMode]
   )
 
   const onDrop = useCallback(
     (event) => {
-      if (isPreviewMode) return
+      if (isPreviewMode || isSimulationMode) return
       event.preventDefault()
 
       const rawData = event.dataTransfer.getData('application/reactflow')
@@ -88,7 +147,7 @@ export function WorkflowCanvas() {
 
       addNode(newNode)
     },
-    [screenToFlowPosition, addNode, isPreviewMode]
+    [screenToFlowPosition, addNode, isPreviewMode, isSimulationMode]
   )
 
   const onNodeClick = useCallback(
@@ -139,23 +198,252 @@ export function WorkflowCanvas() {
         </div>
       )}
 
-      {/* Simulation Banner */}
+      {/* Time Machine Simulation Control Deck (Part 5) */}
       {!isPreviewMode && isSimulationMode && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-500 dark:text-amber-300 shadow-lg shadow-black/30 backdrop-blur-md pointer-events-none">
-          <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-          <span className="text-xs font-semibold tracking-wide">
-            OpsHub Time Machine Simulation Active
-          </span>
-          <span className="text-[10px] text-amber-500 dark:text-amber-400 font-mono">
-            (Event execution & timeline scrubbing: Part 5)
-          </span>
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 w-full max-w-2xl px-3 pointer-events-none">
+          <div
+            className={`pointer-events-auto rounded-2xl border shadow-2xl backdrop-blur-md transition-all p-3 space-y-2.5 ${
+              isDark
+                ? 'bg-slate-900/95 border-amber-500/40 shadow-black/70 text-slate-100'
+                : 'bg-white/95 border-amber-400 shadow-slate-300/80 text-slate-800'
+            }`}
+          >
+            {/* Top Bar: Status Badge, Step Counter & Main Actions */}
+            <div className="flex items-center justify-between gap-2.5 flex-wrap">
+              <div className="flex items-center gap-2">
+                {/* Status Indicator */}
+                {simulation?.status === 'running' && (
+                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-500 dark:text-amber-300 border border-amber-500/40">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                    <span>Sim Running</span>
+                  </span>
+                )}
+                {simulation?.status === 'branching' && (
+                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-500/40 animate-pulse">
+                    <GitFork className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Choose Branch</span>
+                  </span>
+                )}
+                {simulation?.status === 'completed' && (
+                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/40">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Completed</span>
+                  </span>
+                )}
+                {simulation?.status === 'blocked' && (
+                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/40">
+                    <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
+                    <span>Blocked</span>
+                  </span>
+                )}
+                {simulation?.status === 'invalid' && (
+                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/40">
+                    <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />
+                    <span>Workflow Invalid</span>
+                  </span>
+                )}
+                {simulation?.status === 'empty' && (
+                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40">
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Canvas Empty</span>
+                  </span>
+                )}
+
+                {/* Step Counter */}
+                <span className={`text-xs font-mono font-semibold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                  Step {simulation?.currentStep || 0} of {Math.max(simulation?.totalSteps || 0, 1)}
+                </span>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-1.5">
+                {/* Step Forward */}
+                <button
+                  type="button"
+                  onClick={stepForward}
+                  disabled={simulation?.status !== 'running'}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    simulation?.status === 'running'
+                      ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-md shadow-amber-500/20 hover:scale-[1.02] cursor-pointer'
+                      : 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500'
+                  }`}
+                  title={
+                    simulation?.status === 'running'
+                      ? 'Advance to next workflow step'
+                      : simulation?.status === 'branching'
+                      ? 'Select an outgoing branch below to advance'
+                      : 'Step forward unavailable'
+                  }
+                >
+                  <StepForward className="w-3.5 h-3.5" />
+                  <span>Step Forward</span>
+                </button>
+
+                {/* Restart */}
+                <button
+                  type="button"
+                  onClick={restartSimulation}
+                  disabled={simulation?.status === 'empty' || simulation?.status === 'invalid'}
+                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                    simulation?.status !== 'empty' && simulation?.status !== 'invalid'
+                      ? isDark
+                        ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700 cursor-pointer'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300 cursor-pointer'
+                      : 'opacity-40 cursor-not-allowed border-slate-800 text-slate-500'
+                  }`}
+                  title="Restart simulation from entry node"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Restart</span>
+                </button>
+
+                {/* Exit Simulation */}
+                <button
+                  type="button"
+                  onClick={exitSimulation}
+                  className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer ${
+                    isDark
+                      ? 'bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-slate-100 border-slate-700'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-slate-300'
+                  }`}
+                  title="Exit simulation mode and return to canvas editor"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>Exit</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Branch Selection Section (when multiple outgoing connections exist) */}
+            {simulation?.status === 'branching' && (simulation?.pendingBranches?.length ?? 0) > 0 && (
+              <div className="p-2.5 rounded-xl bg-purple-950/40 border border-purple-500/40 space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-purple-200">
+                  <GitFork className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Branching Rule Undefined: Please choose next connection to follow:</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {simulation.pendingBranches.map((branch) => (
+                    <button
+                      key={branch.edgeId}
+                      type="button"
+                      onClick={() => chooseBranch(branch.edgeId, branch.targetNodeId)}
+                      className={`text-left p-2 rounded-lg border flex items-center justify-between gap-2 transition-all hover:scale-[1.01] cursor-pointer ${
+                        isDark
+                          ? 'bg-slate-900/90 hover:bg-purple-900/40 border-purple-500/40 text-purple-200 hover:border-purple-400'
+                          : 'bg-white hover:bg-purple-50 border-purple-200 text-purple-900 hover:border-purple-400 shadow-xs'
+                      }`}
+                    >
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-[10px] uppercase font-bold text-amber-500 dark:text-amber-400 tracking-wider">
+                          {branch.branchLabel}
+                        </span>
+                        <span className="text-xs font-semibold truncate text-slate-900 dark:text-slate-100">
+                          {branch.targetNodeName}
+                        </span>
+                      </div>
+                      <ArrowRight className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Current Node Detail Summary */}
+            {currentNode && (
+              <div
+                className={`p-2 rounded-xl border flex items-center justify-between gap-3 text-xs ${
+                  isDark ? 'bg-slate-950/60 border-slate-800' : 'bg-slate-50 border-slate-200'
+                }`}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-bold text-amber-500 flex-shrink-0">Active Node:</span>
+                  <span className="font-semibold truncate text-slate-900 dark:text-slate-100">
+                    {currentNode.data?.label || currentNode.data?.name}
+                  </span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.5 rounded border font-medium flex-shrink-0 ${
+                      isDark
+                        ? 'bg-slate-800 text-slate-300 border-slate-700'
+                        : 'bg-white text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    {currentNode.data?.category || 'Module'}
+                  </span>
+                </div>
+
+                {/* Config Preview */}
+                <div className="flex items-center gap-1.5 flex-wrap justify-end text-[11px] text-slate-400">
+                  {Object.entries(currentNode.data?.config || {}).length > 0 ? (
+                    Object.entries(currentNode.data.config)
+                      .slice(0, 3)
+                      .map(([k, v]) => (
+                        <span
+                          key={k}
+                          className={`px-1.5 py-0.5 rounded font-mono text-[10px] border ${
+                            isDark
+                              ? 'bg-slate-900 border-slate-800 text-slate-300'
+                              : 'bg-white border-slate-200 text-slate-700'
+                          }`}
+                        >
+                          {k}: <strong className="text-amber-500">{String(v)}</strong>
+                        </span>
+                      ))
+                  ) : (
+                    <span className="text-[10px] italic text-slate-500">Default parameters</span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Informational / Status / Blocked Message */}
+            {simulation?.message && (
+              <p
+                className={`text-[11px] leading-relaxed ${
+                  simulation.status === 'completed'
+                    ? 'text-emerald-500 dark:text-emerald-400 font-medium'
+                    : simulation.status === 'blocked' || simulation.status === 'invalid'
+                    ? 'text-rose-500 dark:text-rose-400 font-medium'
+                    : isDark
+                    ? 'text-slate-400'
+                    : 'text-slate-600'
+                }`}
+              >
+                {simulation.message}
+                {simulation.blockedReason && (
+                  <span className="block mt-0.5 font-mono text-[10px] opacity-80">
+                    Reason: {simulation.blockedReason}
+                  </span>
+                )}
+              </p>
+            )}
+
+            {/* Progress Bar */}
+            <div className="w-full bg-slate-800/60 rounded-full h-1.5 overflow-hidden">
+              <div
+                className={`h-full transition-all duration-300 ${
+                  simulation?.status === 'completed'
+                    ? 'bg-emerald-500'
+                    : simulation?.status === 'blocked' || simulation?.status === 'invalid'
+                    ? 'bg-rose-500'
+                    : 'bg-amber-500'
+                }`}
+                style={{
+                  width: `${
+                    simulation?.totalSteps > 0
+                      ? Math.min(100, Math.round((simulation.currentStep / simulation.totalSteps) * 100))
+                      : 0
+                  }%`,
+                }}
+              />
+            </div>
+          </div>
         </div>
       )}
 
       {/* Interactive @xyflow/react Canvas */}
       <ReactFlow
         nodes={nodes}
-        edges={edges}
+        edges={displayEdges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
@@ -165,11 +453,11 @@ export function WorkflowCanvas() {
         fitView={nodes.length > 0}
         minZoom={0.25}
         maxZoom={2.0}
-        nodesDraggable={!isPreviewMode}
-        nodesConnectable={!isPreviewMode}
+        nodesDraggable={!isPreviewMode && !isSimulationMode}
+        nodesConnectable={!isPreviewMode && !isSimulationMode}
         elementsSelectable={true}
-        deleteKeyCode={isPreviewMode ? null : ['Backspace', 'Delete']}
-        multiSelectionKeyCode={isPreviewMode ? null : ['Meta', 'Control', 'Shift']}
+        deleteKeyCode={isPreviewMode || isSimulationMode ? null : ['Backspace', 'Delete']}
+        multiSelectionKeyCode={isPreviewMode || isSimulationMode ? null : ['Meta', 'Control', 'Shift']}
         connectionLineType="smoothstep"
         connectionLineStyle={{ stroke: '#a855f7', strokeWidth: 2.5 }}
         defaultEdgeOptions={{

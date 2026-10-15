@@ -75,6 +75,8 @@ function WorkflowNodeComponent({ id, data, selected }) {
   const isDark = theme === 'dark'
 
   const isPreviewMode = useWorkflowStore((s) => s.isPreviewMode)
+  const isSimulationMode = useWorkflowStore((s) => s.isSimulationMode)
+  const simulation = useWorkflowStore((s) => s.simulation)
   const deleteNode = useWorkflowStore((s) => s.deleteNode)
   const getActiveValidationReport = useWorkflowStore((s) => s.getActiveValidationReport)
 
@@ -83,6 +85,18 @@ function WorkflowNodeComponent({ id, data, selected }) {
   const hasErrors = nodeIssues.some((i) => i.type === 'error')
   const hasWarnings = nodeIssues.some((i) => i.type === 'warning')
 
+  // Simulation state derivation
+  const isCurrentNode = isSimulationMode && simulation?.currentNodeId === id
+  const visitedIndex = isSimulationMode && Array.isArray(simulation?.visitedNodeIds)
+    ? simulation.visitedNodeIds.indexOf(id)
+    : -1
+  const isVisitedNode = visitedIndex !== -1 && !isCurrentNode
+  const stepNumber = isCurrentNode
+    ? simulation?.currentStep
+    : visitedIndex !== -1
+    ? visitedIndex + 1
+    : null
+
   const IconComponent = (data?.icon && ICON_MAP[data.icon]) || Boxes
   const siteMeta = SITES.find((s) => s.id === data?.siteId)
   const isTrigger = data?.category === MODULE_CATEGORIES.TRIGGER
@@ -90,6 +104,16 @@ function WorkflowNodeComponent({ id, data, selected }) {
   const isCore = data?.category === MODULE_CATEGORIES.CORE || data?.isCore
 
   const getBorderColor = () => {
+    // 1. Simulation Highlights (Highest visual priority)
+    if (isCurrentNode) {
+      return 'border-amber-400 ring-4 ring-amber-400/50 shadow-2xl shadow-amber-500/30'
+    }
+    if (isVisitedNode) {
+      return isDark
+        ? 'border-emerald-500/80 ring-2 ring-emerald-500/40 shadow-lg shadow-emerald-950/40'
+        : 'border-emerald-500 ring-2 ring-emerald-400/50 shadow-md shadow-emerald-100'
+    }
+
     if (selected) {
       return 'border-purple-600 ring-2 ring-purple-500/40 shadow-xl'
     }
@@ -128,6 +152,8 @@ function WorkflowNodeComponent({ id, data, selected }) {
     return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
   }
 
+  const isLocked = isPreviewMode || isSimulationMode
+
   return (
     <div
       className={`min-w-[250px] max-w-[290px] rounded-xl border text-xs transition-all duration-150 relative ${
@@ -140,16 +166,18 @@ function WorkflowNodeComponent({ id, data, selected }) {
           type="target"
           position={Position.Left}
           id="in"
-          isConnectable={!isPreviewMode}
+          isConnectable={!isLocked}
           title={
-            isPreviewMode
-              ? 'Input port (read-only in preview)'
+            isLocked
+              ? isSimulationMode
+                ? 'Input port (read-only in simulation)'
+                : 'Input port (read-only in preview)'
               : 'Input connection port (Drag connection here)'
           }
           className={`!w-3.5 !h-3.5 !bg-purple-600 !border-2 ${
             isDark ? '!border-slate-900' : '!border-white'
           } ${
-            isPreviewMode
+            isLocked
               ? '!cursor-default opacity-75'
               : 'hover:!scale-150 !transition-transform !cursor-crosshair'
           } shadow-md`}
@@ -159,13 +187,23 @@ function WorkflowNodeComponent({ id, data, selected }) {
       {/* Node Header */}
       <div
         className={`px-3 py-2 rounded-t-xl border-b flex items-center justify-between gap-2 ${
-          isDark ? 'bg-slate-950/70 border-slate-800' : 'bg-slate-50 border-slate-100'
+          isCurrentNode
+            ? 'bg-amber-500/15 border-amber-500/40'
+            : isVisitedNode
+            ? 'bg-emerald-500/10 border-emerald-500/30'
+            : isDark
+            ? 'bg-slate-950/70 border-slate-800'
+            : 'bg-slate-50 border-slate-100'
         }`}
       >
         <div className="flex items-center gap-2 min-w-0">
           <div
             className={`p-1.5 rounded-lg border flex-shrink-0 ${
-              isCore
+              isCurrentNode
+                ? 'bg-amber-500/20 border-amber-500/40 text-amber-500 dark:text-amber-300'
+                : isVisitedNode
+                ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-500 dark:text-emerald-300'
+                : isCore
                 ? 'bg-indigo-950/40 border-indigo-500/30 text-indigo-400'
                 : isTrigger
                 ? 'bg-purple-950/40 border-purple-500/30 text-purple-400'
@@ -181,16 +219,37 @@ function WorkflowNodeComponent({ id, data, selected }) {
           </span>
         </div>
 
-        <div className="flex items-center gap-1 flex-shrink-0">
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {/* Simulation Step Badges */}
+          {isCurrentNode && (
+            <span
+              className="flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500 text-slate-950 shadow-xs animate-pulse"
+              title="Currently executing step in Time Machine simulation"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-950" />
+              <span>Step {stepNumber}</span>
+            </span>
+          )}
+
+          {isVisitedNode && (
+            <span
+              className="flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+              title={`Previously executed step ${stepNumber} in simulation`}
+            >
+              <CheckCircle2 className="w-3 h-3 text-emerald-500 dark:text-emerald-400" />
+              <span>Step {stepNumber}</span>
+            </span>
+          )}
+
           {/* Validation Warning / Error Icon */}
-          {hasErrors && (
+          {!isSimulationMode && hasErrors && (
             <span title={`${nodeIssues.length} validation issue(s)`}>
               <AlertCircle className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
             </span>
           )}
 
-          {/* Delete Action Button (Hidden in Preview Mode) */}
-          {!isPreviewMode && (
+          {/* Delete Action Button (Hidden in Preview & Simulation Modes) */}
+          {!isLocked && (
             <button
               type="button"
               onClick={(e) => {
@@ -250,16 +309,18 @@ function WorkflowNodeComponent({ id, data, selected }) {
           type="source"
           position={Position.Right}
           id="out"
-          isConnectable={!isPreviewMode}
+          isConnectable={!isLocked}
           title={
-            isPreviewMode
-              ? 'Output port (read-only in preview)'
+            isLocked
+              ? isSimulationMode
+                ? 'Output port (read-only in simulation)'
+                : 'Output port (read-only in preview)'
               : 'Output connection port (Drag from here to connect next step)'
           }
           className={`!w-3.5 !h-3.5 !bg-purple-600 !border-2 ${
             isDark ? '!border-slate-900' : '!border-white'
           } ${
-            isPreviewMode
+            isLocked
               ? '!cursor-default opacity-75'
               : 'hover:!scale-150 !transition-transform !cursor-crosshair'
           } shadow-md`}
@@ -272,17 +333,19 @@ function WorkflowNodeComponent({ id, data, selected }) {
             type="source"
             position={Position.Right}
             id="out-true"
-            isConnectable={!isPreviewMode}
+            isConnectable={!isLocked}
             style={{ top: '35%' }}
             title={
-              isPreviewMode
-                ? 'Success branch (read-only in preview)'
+              isLocked
+                ? isSimulationMode
+                  ? 'Success branch (read-only in simulation)'
+                  : 'Success branch (read-only in preview)'
                 : 'Success / True execution branch'
             }
             className={`!w-3.5 !h-3.5 !bg-emerald-500 !border-2 ${
               isDark ? '!border-slate-900' : '!border-white'
             } ${
-              isPreviewMode
+              isLocked
                 ? '!cursor-default opacity-75'
                 : 'hover:!scale-150 !transition-transform !cursor-crosshair'
             } shadow-md`}
@@ -291,17 +354,19 @@ function WorkflowNodeComponent({ id, data, selected }) {
             type="source"
             position={Position.Right}
             id="out-false"
-            isConnectable={!isPreviewMode}
+            isConnectable={!isLocked}
             style={{ top: '65%' }}
             title={
-              isPreviewMode
-                ? 'Alternative branch (read-only in preview)'
+              isLocked
+                ? isSimulationMode
+                  ? 'Alternative branch (read-only in simulation)'
+                  : 'Alternative branch (read-only in preview)'
                 : 'Alternative / False execution branch'
             }
             className={`!w-3.5 !h-3.5 !bg-rose-500 !border-2 ${
               isDark ? '!border-slate-900' : '!border-white'
             } ${
-              isPreviewMode
+              isLocked
                 ? '!cursor-default opacity-75'
                 : 'hover:!scale-150 !transition-transform !cursor-crosshair'
             } shadow-md`}

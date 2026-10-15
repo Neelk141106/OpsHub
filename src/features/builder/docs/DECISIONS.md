@@ -115,3 +115,18 @@ Key architectural decisions governing the development of the OpsHub Visual Workf
   3. **UI Component Layer (`InspectorPanel.jsx`, `ModulePalette.jsx`, `BuilderToolbar.jsx`):** Form controls render as formatted read-only displays instead of editable `<input>` controls. Module cards disable HTML5 drag and disable `+` quick-add buttons. Toolbar editing controls (Undo, Redo, Clear, Rename, Save, Publish) are visibly disabled with descriptive tooltips.
 - **Rationale:** Guarantees that even if browser events or keyboard shortcuts fire, neither state nor layout can be inadvertently altered.
 - **Status:** Accepted.
+
+---
+
+## ADR-008: Time Machine Step-by-Step Simulation & Interactive Branch Selection
+
+- **Context:** Part 5 requires a deterministic step-by-step workflow simulation for the active site's nodes and connections, highlighting visited and active nodes, handling completed, empty, invalid, and blocked workflows, and resolving undefined branches without inventing business logic.
+- **Decision:**
+  1. **Direct Graph Traversal Engine:** Traversal starts at the entry trigger node (`incomingEdges.length === 0`). Step progression finds target nodes linked by active outgoing edges. Reachable node counts are dynamically calculated using breadth-first traversal from the entry node.
+  2. **Strict Validation Pre-Flight:** Starting simulation invokes `validateWorkflow()`. Workflows with validation errors transition directly to `status: 'invalid'` with detailed error messages. Empty workflows transition to `status: 'empty'`.
+  3. **Interactive Branch Selection for Undefined Rules:** When an active node has more than one outgoing edge and branching criteria are not configured, the engine transitions to `status: 'branching'` and prompts the user with distinct buttons corresponding to each valid outgoing edge. The user's explicit selection determines which branch is traversed via `chooseBranch(targetNodeId)`.
+  4. **Dynamic Visual Pipeline:** Visited nodes receive emerald styling and completed step indices. The current active node pulses with an amber glow and an active step pill. Traversed edges are illuminated in amber with animated dash offsets, while untraversed edges are dimmed.
+  5. **Simulation Inspector & Execution Log:** A dedicated simulation panel renders step metrics, node parameters, and a chronological execution log where clicking any entry navigates the canvas to focus on that node.
+  6. **Inbound Connection Validation Integrity:** Operational modules with `inputs: 1` (such as `Supervisor Approval Gate` and action steps) strictly require an inbound connection from an upstream trigger or module. Pre-flight validation enforces that approval gates cannot act as autonomous entry triggers. Errors are preserved and presented with clear resolution guidance rather than silently weakening validation or auto-connecting nodes.
+- **Status:** Accepted.
+

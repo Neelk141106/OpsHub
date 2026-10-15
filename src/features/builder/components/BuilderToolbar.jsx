@@ -211,19 +211,21 @@ export function BuilderToolbar() {
         <button
           type="button"
           onClick={undo}
-          disabled={pastCount === 0 || isPreviewMode}
+          disabled={pastCount === 0 || isPreviewMode || isSimulationMode}
           title={
-            isPreviewMode
+            isSimulationMode
+              ? 'Undo disabled during simulation'
+              : isPreviewMode
               ? 'Undo disabled in Preview mode'
               : pastCount > 0
               ? `Undo (${pastCount} actions available, Ctrl+Z)`
               : 'Nothing to undo'
           }
           className={`p-1.5 rounded-md transition-colors ${
-            !isPreviewMode && pastCount > 0
+            !isPreviewMode && !isSimulationMode && pastCount > 0
               ? isDark
-                ? 'hover:bg-slate-800 text-slate-200'
-                : 'hover:bg-white text-slate-700 shadow-xs'
+                ? 'hover:bg-slate-800 text-slate-200 cursor-pointer'
+                : 'hover:bg-white text-slate-700 shadow-xs cursor-pointer'
               : 'text-slate-400 opacity-40 cursor-not-allowed'
           }`}
         >
@@ -234,19 +236,21 @@ export function BuilderToolbar() {
         <button
           type="button"
           onClick={redo}
-          disabled={futureCount === 0 || isPreviewMode}
+          disabled={futureCount === 0 || isPreviewMode || isSimulationMode}
           title={
-            isPreviewMode
+            isSimulationMode
+              ? 'Redo disabled during simulation'
+              : isPreviewMode
               ? 'Redo disabled in Preview mode'
               : futureCount > 0
               ? `Redo (${futureCount} actions available, Ctrl+Y)`
               : 'Nothing to redo'
           }
           className={`p-1.5 rounded-md transition-colors ${
-            !isPreviewMode && futureCount > 0
+            !isPreviewMode && !isSimulationMode && futureCount > 0
               ? isDark
-                ? 'hover:bg-slate-800 text-slate-200'
-                : 'hover:bg-white text-slate-700 shadow-xs'
+                ? 'hover:bg-slate-800 text-slate-200 cursor-pointer'
+                : 'hover:bg-white text-slate-700 shadow-xs cursor-pointer'
               : 'text-slate-400 opacity-40 cursor-not-allowed'
           }`}
         >
@@ -255,36 +259,36 @@ export function BuilderToolbar() {
 
         <div className={`w-[1px] h-4 mx-0.5 ${isDark ? 'bg-slate-800' : 'bg-slate-300'}`} />
 
-        {/* Zoom Out (Fully active in Preview mode) */}
+        {/* Zoom Out (Fully active in Preview and Simulation modes) */}
         <button
           type="button"
           onClick={handleZoomOut}
           title="Zoom out"
-          className={`p-1.5 rounded-md transition-colors ${
+          className={`p-1.5 rounded-md transition-colors cursor-pointer ${
             isDark ? 'hover:bg-slate-800 text-slate-300' : 'hover:bg-white text-slate-700 shadow-xs'
           }`}
         >
           <ZoomOut className="w-3.5 h-3.5" />
         </button>
 
-        {/* Fit View / Center (Fully active in Preview mode) */}
+        {/* Fit View / Center (Fully active in Preview and Simulation modes) */}
         <button
           type="button"
           onClick={handleFitView}
           title="Fit view to show all nodes"
-          className={`p-1.5 rounded-md transition-colors ${
+          className={`p-1.5 rounded-md transition-colors cursor-pointer ${
             isDark ? 'hover:bg-slate-800 text-slate-400 hover:text-slate-200' : 'hover:bg-white text-slate-600 hover:text-slate-900 shadow-xs'
           }`}
         >
           <Maximize2 className="w-3.5 h-3.5" />
         </button>
 
-        {/* Zoom In (Fully active in Preview mode) */}
+        {/* Zoom In (Fully active in Preview and Simulation modes) */}
         <button
           type="button"
           onClick={handleZoomIn}
           title="Zoom in"
-          className={`p-1.5 rounded-md transition-colors ${
+          className={`p-1.5 rounded-md transition-colors cursor-pointer ${
             isDark ? 'hover:bg-slate-800 text-slate-300' : 'hover:bg-white text-slate-700 shadow-xs'
           }`}
         >
@@ -296,17 +300,19 @@ export function BuilderToolbar() {
         <button
           type="button"
           onClick={clearGraph}
-          disabled={nodeCount === 0 || isPreviewMode}
+          disabled={nodeCount === 0 || isPreviewMode || isSimulationMode}
           title={
-            isPreviewMode
+            isSimulationMode
+              ? 'Clear canvas disabled during simulation'
+              : isPreviewMode
               ? 'Clear canvas disabled in Preview mode'
               : nodeCount > 0
               ? `Clear ${nodeCount} nodes from canvas`
               : 'Canvas is empty'
           }
           className={`p-1.5 rounded-md transition-colors ${
-            !isPreviewMode && nodeCount > 0
-              ? 'hover:bg-rose-500/15 text-slate-400 hover:text-rose-500'
+            !isPreviewMode && !isSimulationMode && nodeCount > 0
+              ? 'hover:bg-rose-500/15 text-slate-400 hover:text-rose-500 cursor-pointer'
               : 'text-slate-400 opacity-40 cursor-not-allowed'
           }`}
         >
@@ -314,13 +320,13 @@ export function BuilderToolbar() {
         </button>
       </div>
 
-      {/* Right: Theme Toggle, Preview Button, Simulation Preview, Save Draft & Publish */}
+      {/* Right: Theme Toggle, Preview Button, Time Machine Simulation, Save Draft & Publish */}
       <div className="flex items-center gap-2">
         {/* Light / Dark Theme Toggle */}
         <button
           type="button"
           onClick={toggleTheme}
-          className={`p-2 rounded-lg border transition-colors ${
+          className={`p-2 rounded-lg border transition-colors cursor-pointer ${
             isDark
               ? 'bg-slate-800/90 hover:bg-slate-800 text-amber-400 border-slate-700'
               : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 shadow-xs'
@@ -334,15 +340,20 @@ export function BuilderToolbar() {
         <button
           type="button"
           onClick={togglePreviewMode}
+          disabled={isSimulationMode}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-            isPreviewMode
-              ? 'bg-purple-600 hover:bg-purple-700 text-white border-purple-500 shadow-sm ring-2 ring-purple-500/30'
+            isSimulationMode
+              ? 'opacity-40 cursor-not-allowed bg-slate-800/50 border-slate-800 text-slate-500'
+              : isPreviewMode
+              ? 'bg-purple-600 hover:bg-purple-700 text-white border-purple-500 shadow-sm ring-2 ring-purple-500/30 cursor-pointer'
               : isDark
-              ? 'bg-slate-800/90 hover:bg-slate-800 text-purple-300 hover:text-purple-200 border-purple-500/30 hover:border-purple-500/50'
-              : 'bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200 shadow-xs'
+              ? 'bg-slate-800/90 hover:bg-slate-800 text-purple-300 hover:text-purple-200 border-purple-500/30 hover:border-purple-500/50 cursor-pointer'
+              : 'bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200 shadow-xs cursor-pointer'
           }`}
           title={
-            isPreviewMode
+            isSimulationMode
+              ? 'Preview mode disabled during active simulation'
+              : isPreviewMode
               ? 'Exit Preview mode and return to full canvas editor'
               : 'Preview current site workflow in clean, read-only mode'
           }
@@ -360,7 +371,7 @@ export function BuilderToolbar() {
           )}
         </button>
 
-        {/* Simulation Mode Toggle (Clearly marked preview) */}
+        {/* TIME MACHINE SIMULATION BUTTON (Part 5) */}
         <button
           type="button"
           onClick={toggleSimulationMode}
@@ -369,25 +380,27 @@ export function BuilderToolbar() {
             isPreviewMode
               ? 'opacity-40 cursor-not-allowed bg-slate-800/50 border-slate-800 text-slate-400'
               : isSimulationMode
-              ? 'bg-amber-500/15 text-amber-600 dark:text-amber-300 border-amber-500/40 shadow-xs'
+              ? 'bg-amber-500/20 text-amber-500 dark:text-amber-300 border-amber-500/50 shadow-sm ring-2 ring-amber-500/30 cursor-pointer font-bold'
               : isDark
-              ? 'bg-slate-800/90 hover:bg-slate-800 text-slate-300 border-slate-700'
-              : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+              ? 'bg-slate-800/90 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border-amber-500/30 hover:border-amber-500/50 cursor-pointer'
+              : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200 shadow-xs cursor-pointer'
           }`}
           title={
             isPreviewMode
               ? 'Time machine disabled in Preview mode'
-              : 'Time Machine (Historical playback & what-if simulator scheduled for Part 5)'
+              : isSimulationMode
+              ? 'Exit Time Machine Simulation mode'
+              : 'Start Step-by-Step Workflow Simulation (Part 5)'
           }
         >
           {isSimulationMode ? (
             <>
-              <Pause className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-              <span>Sim Active (P5)</span>
+              <Pause className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+              <span>Exit Sim</span>
             </>
           ) : (
             <>
-              <Play className="w-3.5 h-3.5 text-slate-400" />
+              <Play className="w-3.5 h-3.5 text-amber-500 fill-amber-500/20" />
               <span>Time Machine</span>
             </>
           )}
@@ -397,16 +410,18 @@ export function BuilderToolbar() {
         <button
           type="button"
           onClick={triggerSaveDraft}
-          disabled={isPreviewMode}
+          disabled={isPreviewMode || isSimulationMode}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-            isPreviewMode
+            isPreviewMode || isSimulationMode
               ? 'opacity-40 cursor-not-allowed border-slate-800 text-slate-400'
               : isDark
-              ? 'bg-slate-800/90 hover:bg-slate-800 text-slate-200 border-slate-700'
-              : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200 shadow-xs'
+              ? 'bg-slate-800/90 hover:bg-slate-800 text-slate-200 border-slate-700 cursor-pointer'
+              : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200 shadow-xs cursor-pointer'
           }`}
           title={
-            isPreviewMode
+            isSimulationMode
+              ? 'Save draft disabled during simulation'
+              : isPreviewMode
               ? 'Save draft disabled in Preview mode (Exit preview to save)'
               : 'Save draft (stored in local memory; backend persistence scheduled for Part 6)'
           }
@@ -420,14 +435,16 @@ export function BuilderToolbar() {
         <button
           type="button"
           onClick={triggerPublish}
-          disabled={isPreviewMode}
+          disabled={isPreviewMode || isSimulationMode}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-colors ${
-            isPreviewMode
+            isPreviewMode || isSimulationMode
               ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-400'
-              : 'bg-purple-600 hover:bg-purple-700 text-white'
+              : 'bg-purple-600 hover:bg-purple-700 text-white cursor-pointer'
           }`}
           title={
-            isPreviewMode
+            isSimulationMode
+              ? 'Publishing disabled during simulation'
+              : isPreviewMode
               ? 'Publishing disabled in Preview mode'
               : 'Publish workflow (Unlocks after Part 4 validation & Part 6 integration)'
           }

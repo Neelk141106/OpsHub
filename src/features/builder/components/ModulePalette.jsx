@@ -103,6 +103,8 @@ export function ModulePalette() {
   const activeSite = useWorkflowStore((s) => s.activeSite)
   const isPreviewMode = useWorkflowStore((s) => s.isPreviewMode)
   const togglePreviewMode = useWorkflowStore((s) => s.togglePreviewMode)
+  const isSimulationMode = useWorkflowStore((s) => s.isSimulationMode)
+  const exitSimulation = useWorkflowStore((s) => s.exitSimulation)
   const selectedModule = useWorkflowStore((s) => s.selectedModule)
   const setSelectedModule = useWorkflowStore((s) => s.setSelectedModule)
   const addNode = useWorkflowStore((s) => s.addNode)
@@ -112,6 +114,7 @@ export function ModulePalette() {
   const [subFilter, setSubFilter] = useState('ALL')
 
   const currentSiteMeta = SITES.find((s) => s.id === activeSite) || SITES[0]
+  const isLocked = isPreviewMode || isSimulationMode
 
   // Filter modules by search, scopeTab (Core vs Operational), and subFilter
   const filteredModules = useMemo(() => {
@@ -284,6 +287,23 @@ export function ModulePalette() {
           </div>
         )}
 
+        {/* Simulation Mode Locked Banner */}
+        {isSimulationMode && (
+          <div className="mb-2 p-2 rounded-lg bg-amber-950/50 border border-amber-500/40 text-[11px] text-amber-200 flex items-center justify-between gap-2">
+            <span className="flex items-center gap-1.5 font-medium">
+              <Lock className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+              <span>Palette locked in Sim</span>
+            </span>
+            <button
+              type="button"
+              onClick={exitSimulation}
+              className="text-[10px] underline hover:text-white font-semibold flex-shrink-0 cursor-pointer"
+            >
+              Exit Simulation
+            </button>
+          </div>
+        )}
+
         {/* Scope Tabs: Core (13) vs Operational (20) vs All (33) */}
         <div className="grid grid-cols-3 gap-1 p-0.5 rounded-lg bg-slate-950/40 border border-slate-800/80 mb-2 text-[11px] text-center">
           <button
@@ -402,7 +422,7 @@ export function ModulePalette() {
                   return (
                     <div
                       key={mod.id}
-                      draggable={!isPreviewMode}
+                      draggable={!isLocked}
                       onDragStart={(e) => onDragStart(e, mod)}
                       onClick={() => setSelectedModule(mod)}
                       className={`group p-2.5 rounded-lg border text-left transition-all ${
@@ -411,9 +431,11 @@ export function ModulePalette() {
                           : isDark
                           ? 'bg-slate-950/60 hover:bg-slate-800/80 border-slate-800 hover:border-slate-700'
                           : 'bg-slate-50 hover:bg-slate-100/90 border-slate-200 hover:border-slate-300'
-                      } ${isPreviewMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'}`}
+                      } ${isLocked ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'}`}
                       title={
-                        isPreviewMode
+                        isSimulationMode
+                          ? 'Module editing locked in Simulation mode'
+                          : isPreviewMode
                           ? 'Module editing locked in Preview mode'
                           : 'Drag to canvas or click + to add'
                       }
@@ -437,22 +459,24 @@ export function ModulePalette() {
                         <div className="flex items-center gap-1">
                           <button
                             type="button"
-                            disabled={isPreviewMode}
+                            disabled={isLocked}
                             onClick={(e) => handleQuickAdd(e, mod)}
                             className={`p-1 rounded border transition-colors ${
-                              isPreviewMode
+                              isLocked
                                 ? 'bg-slate-800/40 text-slate-500 opacity-40 cursor-not-allowed border-slate-800'
-                                : 'bg-slate-800/80 hover:bg-purple-600 text-slate-400 hover:text-white border-slate-700'
+                                : 'bg-slate-800/80 hover:bg-purple-600 text-slate-400 hover:text-white border-slate-700 cursor-pointer'
                             }`}
                             title={
-                              isPreviewMode
+                              isSimulationMode
+                                ? 'Adding modules disabled during simulation'
+                                : isPreviewMode
                                 ? 'Adding modules disabled in Preview mode'
                                 : 'Add directly to canvas'
                             }
                           >
                             <Plus className="w-3 h-3" />
                           </button>
-                          {!isPreviewMode && (
+                          {!isLocked && (
                             <GripVertical className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300 flex-shrink-0 mt-0.5" />
                           )}
                         </div>

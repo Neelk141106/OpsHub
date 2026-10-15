@@ -41,8 +41,8 @@ The project runtime and build tooling are installed and operational:
 | **Part 2** | Drag-and-drop canvas and connections | 🟢 **Completed** | Full `@xyflow/react` interactive canvas, visible connection handles and animated edges, HTML5 drag-and-drop & quick-add, node/edge deletion, zoom/fit-view controls via `useReactFlow`, Light/Dark theme toggle, exactly 13 approved core modules + 20 operational steps, and isolated per-site state. |
 | **Part 3** | Module registry and settings | 🟢 **Completed** | Dynamic form generation in `InspectorPanel.jsx` based on module settings schemas, bidirectional parameter mutation via `useWorkflowStore.updateNodeConfig`, inline validation feedback, and full `validateWorkflow.js` topology/settings validation engine with clickable issue navigation. |
 | **Part 4** | Workflow Preview | 🟢 **Completed** | Dedicated Preview Mode toggled via `BuilderToolbar.jsx`, multi-layer read-only mutation guards in `useWorkflowStore.js`, read-only node inspection & configured settings view in `InspectorPanel.jsx`, validation health indicators (errors, warnings, valid), click-to-focus canvas navigation via `useReactFlow().setCenter()`, and strict site draft isolation across Central Stores, Service Centre, and Distribution. |
-| **Part 5** | OpsHub Time Machine simulation | 🔴 **Not Started** | Deterministic simulation engine, timeline scrubber, and scenario what-if controls scheduled for Part 5. |
-| **Part 6** | Publish, versioning and integration | 🔴 **Not Started** | No workflow serialization, versioning store, or site handoff triggers implemented. |
+| **Part 5** | OpsHub Time Machine simulation | 🟢 **Completed** | Full deterministic step-by-step traversal engine in `useWorkflowStore.js`, pre-flight validation integration via `validateWorkflow.js`, interactive Canvas Control Deck, active/visited node highlighting (amber pulse / emerald checkmark), illuminated animated traversed edges, read-only parameter inspection in `InspectorPanel.jsx`, execution timeline log, and interactive user branch selector for undefined branching. |
+| **Part 6** | Publish, versioning and integration | 🔴 **Not Started** | Workflow serialization, semantic versioning stamp, JSON export/import, and integration contracts for Central Stores, Service Centre, and Distribution scheduled for Part 6. |
 
 ---
 
@@ -67,6 +67,6 @@ The project runtime and build tooling are installed and operational:
 ## 5. Items Pending Verification
 
 1. **Routing Integration (`src/app`):** Pending verification whether the Builder will be mounted at route `/builder` or rendered as the root view in `src/App.jsx`.
-2. **Persistence Layer:** Pending verification whether workflow graphs should persist to `localStorage` or memory-only mock stores during client-side development.
-3. **Site Data Contracts:** Schema models for Central Stores, Service Centre, and Distribution are conceptual in `PROJECT_CONTEXT.md` and need formal TypeScript/JSDoc type contracts in `src/data/` or `src/features/builder/types.js`.
-4. **Time Machine Seed Data:** Default timeline scenario events to seed initial playback scheduled for Part 5.
+2. **Persistence Layer:** Pending verification whether workflow graphs should persist to `localStorage` or memory-only mock stores during client-side development (scheduled for Part 6).
+3. **Site Data Contracts:** Schema models for Central Stores, Service Centre, and Distribution are conceptual in `PROJECT_CONTEXT.md` and need formal TypeScript/JSDoc type contracts in `src/data/` or `src/features/builder/types.js` (scheduled for Part 6).
+4. **Time Machine Verification:** Part 5 step-by-step traversal, branch resolution, visual simulation, and pre-flight validation blocking verified. Inbound connection requirement for gateways (`Supervisor Approval Gate`) confirmed as genuine enterprise workflow validation rule (not an ID matching bug); actionable resolution guidance provided in Simulation Inspector.

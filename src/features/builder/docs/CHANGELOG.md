@@ -9,13 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned for Part 5 (v0.5.0)
-- OpsHub Time Machine simulation engine and playback controller bar.
-- Interactive scenario scrubbing and what-if parameter modification.
-
 ### Planned for Part 6 (v0.6.0)
-- JSON export/import serializer and semantic versioning stamp.
-- Integration triggers for Central Stores, Service Centre, and Distribution.
+- Workflow serialization, semantic versioning stamp, and JSON export/import.
+- Integration triggers and data contract bindings for Central Stores, Service Centre, and Distribution.
+- Read-only live deployment simulator verification.
+
+---
+
+## [0.5.0] - 2026-10-15
+
+### Added
+- Implemented Part 5 Time Machine Simulation:
+  - **Time Machine Controls:** Integrated toolbar Time Machine button with full simulation lifecycle (`startSimulation`, `stepForward`, `chooseBranch`, `restartSimulation`, `exitSimulation`).
+  - **State Isolation & Mutation Guards:** Locked all canvas mutations (`addNode`, `deleteNode`, `deleteEdge`, `updateNodeConfig`, `updateNodeLabel`, `clearGraph`, `undo`, `redo`, `setWorkflowName`, `onConnect`) and disabled palette dragging during simulation mode.
+  - **Step-by-Step Graph Traversal:** Traverses active site's placed workflow nodes and connections sequentially, calculating dynamic reachable step counts and visited node tracking.
+  - **Visual Node Highlighting:** Current active node illuminated with `border-amber-400 ring-4 ring-amber-400/50 shadow-2xl animate-pulse` and `Step X` active indicator pill; previously visited nodes marked with emerald accent ring and checkmark pill.
+  - **Traversed Edge Illumination:** Canvas edges dynamically styled; traversed edges illuminate in bright animated amber (`#f59e0b`, width 3.5, glow shadow), while untraversed edges are dimmed (`opacity: 0.3`).
+  - **Floating Simulation Control Deck:** Canvas-top floating HUD with simulation status badge, step counter (`Step X of Y`), Step Forward, Restart, and Exit buttons, current node preview, and inline branch selection buttons.
+  - **Interactive Undefined Branching:** When a node has multiple outgoing edges without defined business rules, the simulation halts cleanly with `status: 'branching'` and prompts the operator to choose a valid next connection.
+  - **Pre-Flight Topology & Health Validation:** Integrated existing Part 3 `validateWorkflow.js` engine; detects empty graphs (`status: 'empty'`), blocks invalid topologies (`status: 'invalid'`), and displays detailed diagnostic reasons.
+  - **Simulation Inspector Panel:** Dedicated inspection view in `InspectorPanel.jsx` showing simulation status banner, execution progress bar, read-only configured parameters table of the current node, chronological execution log with click-to-focus navigation, and pre-flight validation health card with actionable issue list and "Exit Simulation to Connect Nodes" action.
+  - **Site Switching & Preview Safety:** Switching operational facilities or entering Preview mode automatically terminates running simulations cleanly.
+  - **Inbound Connection Verification:** Traced and verified inbound connection rules for approval gates and operational modules; verified genuine configuration errors are preserved without weakening validation or silently auto-connecting nodes.
 
 ---
 

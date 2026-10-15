@@ -20,6 +20,7 @@ export function BuilderLayout() {
 
   const activeSite = useWorkflowStore((s) => s.activeSite)
   const isPreviewMode = useWorkflowStore((s) => s.isPreviewMode)
+  const isSimulationMode = useWorkflowStore((s) => s.isSimulationMode)
   const notification = useWorkflowStore((s) => s.notification)
   const clearNotification = useWorkflowStore((s) => s.clearNotification)
   const getActiveValidationReport = useWorkflowStore((s) => s.getActiveValidationReport)
@@ -105,7 +106,12 @@ export function BuilderLayout() {
             <span className="text-slate-400">|</span>
             <span>Facility: {currentSiteMeta.name}</span>
             <span className="text-slate-400">|</span>
-            {isPreviewMode ? (
+            {isSimulationMode ? (
+              <span className="text-amber-500 dark:text-amber-300 font-semibold flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                <span>Time Machine Simulation Active</span>
+              </span>
+            ) : isPreviewMode ? (
               <span className="text-purple-400 font-medium">Preview Mode Active (Read-Only)</span>
             ) : (
               <span className="text-slate-400">Part 2 Canvas & Part 3 Configuration Active</span>
@@ -116,7 +122,9 @@ export function BuilderLayout() {
             <div className="flex items-center gap-1">
               <Keyboard className="w-3 h-3 text-slate-400" />
               <span>
-                {isPreviewMode
+                {isSimulationMode
+                  ? 'Step Forward / Restart in Deck • Click Node to Inspect'
+                  : isPreviewMode
                   ? 'Click Node to Inspect • Zoom & Pan Canvas'
                   : 'Del Delete • Ctrl+Z Undo • Ctrl+Y Redo'}
               </span>
@@ -126,7 +134,7 @@ export function BuilderLayout() {
               {theme} mode
             </span>
             <span>•</span>
-            <span>OpsHub v0.4.0 (Part 4: Preview)</span>
+            <span>OpsHub v0.5.0 (Part 5: Simulation)</span>
           </div>
         </footer>
       </div>

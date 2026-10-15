@@ -85,17 +85,18 @@ Tracking the 6-part roadmap for the Visual Workflow Builder within OpsHub.
 ---
 
 ### Part 5: OpsHub Time Machine Simulation
-- **Objective:** Deterministic event simulation and timeline scrubbing across operational sites.
-- **Status:** 🔴 Not Started
+- **Objective:** Deterministic step-by-step workflow simulation and execution traversal across operational sites.
+- **Status:** 🟢 Completed
 - **Key Deliverables:**
-  - [ ] Deterministic simulation engine: traverses nodes event-by-event with synthetic mock items.
-  - [ ] Time Machine control bar: Play, Pause, Step Forward, Step Back, Speed (1x, 2x, 5x, 10x).
-  - [ ] Visual execution highlighting: active node pulse animation, glowing edges for active transits.
-  - [ ] What-If parameter overrides:
-    - Technician capacity multiplier (Service Centre).
-    - Stock delivery latency adjustment (Central Stores).
-    - Freight carrier delay injection (Distribution).
-  - [ ] Real-time queue metrics and bottleneck indicator overlay.
+  - [x] Time Machine Controls: Integrated existing Time Machine button with Start Simulation, Step Forward, Restart, and Exit Simulation actions.
+  - [x] Step-by-Step Workflow Simulation: Graph traversal engine in `useWorkflowStore.js` executing active site's nodes and connections step-by-step.
+  - [x] Canvas Visual Highlighting: Active current node highlighted with pulsing amber ring; visited nodes distinguished with emerald ring and step badges; traversed connections glow with animated amber strokes.
+  - [x] Stepper & Timeline Progress: Displays current step number, total relevant reachable nodes, and horizontal progress bar.
+  - [x] Current Node Parameters Inspection: Displays current node name, module type, and configured key-value parameters in read-only format in both the canvas deck and Inspector.
+  - [x] Edge-Case Handling: Robust handling for completed, empty, invalid (reusing `validateWorkflow.js`), and blocked workflows with descriptive messaging.
+  - [x] Undefined Branching Resolution: When a node has multiple outgoing connections and rules are undefined, prompts user with interactive branch selection buttons.
+  - [x] Strict Mutation Defense: Canvas drag/drop, palette additions, node/edge deletion, and draft changes are strictly locked during simulation.
+  - [x] Inbound Connection Verification: Traced and verified inbound connection rules for approval gates and operational modules; verified genuine configuration errors are preserved without weakening validation or silently auto-connecting nodes.
 
 ---
 
