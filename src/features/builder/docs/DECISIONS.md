@@ -1,0 +1,105 @@
+# Architecture & Integration Decisions (ADRs)
+
+Key architectural decisions governing the development of the OpsHub Visual Workflow Builder.
+
+---
+
+## ADR-001: Feature Directory Structure & Docs Placement
+
+- **Context:** The task suggested evaluating `src/features/workflow-builder/docs/` while avoiding duplicate files and respecting existing architecture.
+- **Decision:** Place the tracking documentation and subsequent feature code inside `src/features/builder/docs/`.
+- **Rationale:**
+  - `PROJECT_CONTEXT.md` explicitly lists `src/features/builder/` as the canonical location for the Workflow Canvas (`@xyflow/react` nodes & edges).
+  - The repository was initialized with `src/features/builder/.gitkeep`.
+  - Creating `src/features/workflow-builder/` would introduce divergent, redundant feature directories and violate established project conventions.
+- **Status:** Accepted.
+
+---
+
+## ADR-002: Canvas Framework Selection (`@xyflow/react`)
+
+- **Context:** The Visual Workflow Builder requires a resilient node graph layout supporting custom node views, custom edge connections, minimap navigation, and zoom/pan functionality.
+- **Decision:** Adopt `@xyflow/react` (v12.x) as the sole canvas rendering engine.
+- **Rationale:**
+  - Already installed in `package.json` (`@xyflow/react@^12.12.0`).
+  - Native React 19 compatibility.
+  - Built-in support for custom node types, typed handles, background grid variants, and SVG-based edge customization.
+- **Status:** Accepted.
+
+---
+
+## ADR-003: State Management via Zustand Store Slice
+
+- **Context:** Node canvas interactions (node dragging, connecting edges, parameter updates, simulation scrubbing) generate high-frequency state updates. Storing canvas graph state in React local component state causes unnecessary re-renders across panels.
+- **Decision:** Implement a dedicated Zustand store (`useWorkflowStore`) in `src/features/builder/store/useWorkflowStore.js` with decoupled selectors.
+- **Rationale:**
+  - `zustand` is already installed (`zustand@^5.0.15`).
+  - Supports transient updates and outside-of-React dispatching, essential for Time Machine simulation ticks.
+  - Allows clean separation between canvas UI state (zoom, selection) and domain graph topology (nodes, edges, node configs).
+- **Status:** Accepted.
+
+---
+
+## ADR-004: Inter-Site Operational Integration Contracts
+
+- **Context:** OpsHub connects three operational sites: Central Stores, Service Centre, and Distribution. The Workflow Builder must visually represent cross-facility handoffs and emit valid integration payloads.
+- **Decision:** Standardize node payloads with site identifiers, typed trigger/action contracts, and inter-site transit connectors.
+- **Contracts Schema:**
+
+### 1. Central Stores Contract
+- **Site Identifier:** `central-stores`
+- **Primary Triggers:**
+  - `STORES_STOCK_ARRIVAL`: Payload `{ sku: string, batchId: string, quantity: number, bay: string, timestamp: string }`
+  - `STORES_THRESHOLD_ALERT`: Payload `{ sku: string, currentLevel: number, minThreshold: number }`
+- **Primary Actions:**
+  - `STORES_RESERVE_PARTS`: Input `{ requisitionId: string, sku: string, quantity: number }` -> Output `{ reservationId: string, status: "RESERVED" | "BACKORDERED" }`
+  - `STORES_DISPATCH_TO_SERVICE`: Input `{ reservationId: string, destinationTicket: string }` -> Output `{ transitId: string, dispatchedAt: string }`
+
+### 2. Service Centre Contract
+- **Site Identifier:** `service-centre`
+- **Primary Triggers:**
+  - `SERVICE_TICKET_CREATED`: Payload `{ ticketId: string, serialNumber: string, defectCategory: string, priority: "LOW" | "NORMAL" | "CRITICAL" }`
+  - `SERVICE_QA_FAILED`: Payload `{ ticketId: string, failedGate: string, reason: string }`
+- **Primary Actions:**
+  - `SERVICE_ASSIGN_TECH`: Input `{ ticketId: string, skillRequired: string }` -> Output `{ technicianId: string, estimatedHours: number }`
+  - `SERVICE_REQUEST_PART`: Input `{ ticketId: string, partSku: string }` -> Triggers `STORES_RESERVE_PARTS` contract.
+  - `SERVICE_QA_SIGN_OFF`: Input `{ ticketId: string, inspectorToken: string }` -> Output `{ pass: boolean, certifiedDate: string }`
+
+### 3. Distribution Contract
+- **Site Identifier:** `distribution`
+- **Primary Triggers:**
+  - `DIST_ORDER_QUEUED`: Payload `{ orderId: string, destinationDepot: string, units: Array<{ serialNumber: string }> }`
+- **Primary Actions:**
+  - `DIST_PICK_PACK_VERIFY`: Input `{ orderId: string }` -> Output `{ packageWeightKg: number, manifestBarcode: string }`
+  - `DIST_CARRIER_DISPATCH`: Input `{ orderId: string, carrierCode: string }` -> Output `{ waybillNumber: string, trackingUrl: string, etd: string }`
+
+### 4. Cross-Facility Transit Connector (`SiteTransitNode`)
+- **Node Type:** `siteTransit`
+- **Contract:** `{ originSite: SiteId, targetSite: SiteId, transitDurationMin: number, custodyTransferSignoff: boolean }`
+- **Status:** Accepted.
+
+---
+
+## ADR-005: Time Machine Simulation Architecture
+
+- **Context:** OpsHub requires historical playback and predictive "What-If" modeling without interfering with live workflow configurations.
+- **Decision:** Model the Time Machine as an isolated deterministic event queue executed by a discrete Zustand slice (`useSimulationStore`).
+- **Rationale:**
+  - Avoids mutating active workflow designer nodes during playback.
+  - Enables instant forward/backward timeline scrubbing by keeping an array of simulation snapshots.
+  - Allows applying "What-If" parameter multipliers (e.g., 20% technician shortage, freight delay) without modifying the published workflow configuration.
+- **Status:** Accepted.
+
+---
+
+## ADR-006: Client-Side Graph Validation Strategy
+
+- **Context:** Operators must receive real-time visual feedback if a workflow graph is incomplete or structurally flawed before publishing.
+- **Decision:** Execute client-side graph analysis rules in `src/features/builder/validation/validateWorkflow.js` upon node/edge change events.
+- **Validation Rules:**
+  1. **Trigger Presence:** At least one Trigger node must exist with no incoming edges.
+  2. **Connectivity:** No orphan nodes allowed (every node must be reachable from a trigger).
+  3. **Terminal Path:** All execution branches must terminate at a recognized Action or Completion node.
+  4. **Contract Matching:** Source handle output types must match target handle input types.
+  5. **Cycle Detection:** Cycles are flagged as errors unless explicitly flagged as a configured `RetryLoopNode`.
+- **Status:** Accepted.
