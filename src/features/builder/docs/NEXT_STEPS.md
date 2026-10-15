@@ -1,43 +1,36 @@
-# Next Steps — Part 1: Builder UI Foundation
+# Next Steps — Part 4: Validation and Preview
 
-Detailed plan and acceptance criteria for the immediate next development milestone.
+Detailed plan and acceptance criteria for the upcoming development milestone.
 
 ---
 
 ## Next Task Objective
 
-Implement **Part 1: Builder UI Foundation** within `src/features/builder/` to establish the visual layout, structural panels, action toolbar, and core Zustand store skeleton before integrating the `@xyflow/react` canvas.
+Implement **Part 4: Validation and Preview** within `src/features/builder/` to establish a dry-run execution simulator, linear workflow trace, and topological cycle analysis prior to Time Machine simulation and publishing.
 
 ---
 
 ## Scope of Work
 
-1. **Feature Directory Structure Setup:**
-   - Create subdirectories:
-     - `src/features/builder/components/`
-     - `src/features/builder/store/`
-     - `src/features/builder/nodes/`
-     - `src/features/builder/registry/`
-     - `src/features/builder/validation/`
+1. **Dry-Run Path Simulation:**
+   - Linear flow tracer that follows events from trigger/entry nodes through intermediate actions to terminal outputs.
+   - Trace step highlighting: sequentially highlights nodes and edges along the active execution path.
 
-2. **UI Frame Components:**
-   - `BuilderLayout.jsx`: Responsive 3-column layout (Palette on left, Canvas in center, Inspector on right) with a persistent top toolbar and bottom status bar.
-   - `BuilderToolbar.jsx`: Interactive top bar with:
-     - Workflow title and editable name input.
-     - Undo / Redo buttons (disabled states when history is empty).
-     - Zoom controls (Zoom In, Zoom Out, Fit View).
-     - Clear Canvas button with confirmation modal.
-     - Simulation Mode toggle button (switches UI theme/mode for Time Machine).
-   - `NodePalette.jsx`: Left-panel placeholder categorized into accordion sections:
-     - Central Stores
-     - Service Centre
-     - Distribution
-     - Flow Control (Triggers, Approvals, Conditions, Transit)
-   - `InspectorPanel.jsx`: Right-panel properties drawer displaying placeholder prompt when no node is selected.
-   - `StatusBar.jsx`: Bottom status line displaying:
-     - Node count & Edge count.
-     - Graph validation badge ("Valid" / "X Issues Found").
-     - Viewport zoom percentage.
+2. **Topological Graph Analysis:**
+   - Detect circular dependency loops (excluding configured retry cycles).
+   - Verify contract schema compatibility between connected source output types and target input types.
+
+3. **Read-Only Preview Drawer:**
+   - Modal or drawer previewing the sanitized, executable workflow graph JSON representation.
+
+---
+
+## Acceptance Criteria
+
+- [ ] **AC-1:** Operator can trigger "Dry-Run Simulation" from the toolbar or inspector to preview execution sequencing.
+- [ ] **AC-2:** Circular loops are flagged with actionable remediation recommendations.
+- [ ] **AC-3:** Contract mismatches between connected ports are clearly displayed.
+- [ ] **AC-4:** Clean build via `npm run build` and zero warnings from `oxlint`.
 
 3. **Core Store Foundation (`useWorkflowStore.js`):**
    - Initialize Zustand store holding:

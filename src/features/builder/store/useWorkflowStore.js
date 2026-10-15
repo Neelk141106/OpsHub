@@ -1,4 +1,6 @@
 import { create } from 'zustand'
+import { applyNodeChanges, applyEdgeChanges, addEdge, MarkerType } from '@xyflow/react'
+import { validateWorkflow } from '../validation/validateWorkflow'
 
 const INITIAL_SITE_DRAFTS = {
   'central-stores': {
@@ -28,19 +30,27 @@ const INITIAL_SITE_DRAFTS = {
 }
 
 export const useWorkflowStore = create((set, get) => ({
+  // Theme state: 'dark' (default) or 'light'
+  theme: 'dark',
+
   // Active selected operational site
   activeSite: 'central-stores',
 
   // Isolated drafts keyed by siteId to prevent accidental draft sharing
   siteDrafts: INITIAL_SITE_DRAFTS,
 
-  // Selected module from the palette or canvas
+  // Selected module from palette or placed node from canvas
   selectedModule: null,
   selectedNodeId: null,
 
   // UI modes & status
   isSimulationMode: false,
   notification: null,
+
+  // Toggle Light / Dark theme
+  toggleTheme: () => {
+    set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' }))
+  },
 
   // Switch active site (preserves separate drafts per site)
   setActiveSite: (siteId) => {
@@ -67,7 +77,333 @@ export const useWorkflowStore = create((set, get) => ({
     })
   },
 
-  // Select module to inspect
+  // Record history snapshot helper
+  recordHistory: () => {
+    const { activeSite, siteDrafts } = get()
+    const currentDraft = siteDrafts[activeSite]
+    if (!currentDraft) return
+
+    const newPast = [
+      ...currentDraft.history.past.slice(-20), // Keep up to 20 past snapshots
+      {
+        nodes: JSON.parse(JSON.stringify(currentDraft.nodes)),
+        edges: JSON.parse(JSON.stringify(currentDraft.edges)),
+      },
+    ]
+
+    return {
+      past: newPast,
+      future: [],
+    }
+  },
+
+  // --- Node & Edge Graph Actions ---
+
+  // Handle changes dispatched by @xyflow/react (position, selection, removal)
+  onNodesChange: (changes) => {
+    const { activeSite, siteDrafts } = get()
+    const currentDraft = siteDrafts[activeSite]
+    if (!currentDraft) return
+
+    const updatedNodes = applyNodeChanges(changes, currentDraft.nodes)
+
+    // Check if selection changed
+    const selectionChange = changes.find((c) => c.type === 'select')
+    let newSelectedId = get().selectedNodeId
+
+    if (selectionChange) {
+      if (selectionChange.selected) {
+        newSelectedId = selectionChange.id
+      } else if (newSelectedId === selectionChange.id) {
+        newSelectedId = null
+      }
+    }
+
+    set({
+      selectedNodeId: newSelectedId,
+      siteDrafts: {
+        ...siteDrafts,
+        [activeSite]: {
+          ...currentDraft,
+          nodes: updatedNodes,
+        },
+      },
+    })
+  },
+
+  // Handle edge changes dispatched by @xyflow/react
+  onEdgesChange: (changes) => {
+    const { activeSite, siteDrafts } = get()
+    const currentDraft = siteDrafts[activeSite]
+    if (!currentDraft) return
+
+    const updatedEdges = applyEdgeChanges(changes, currentDraft.edges)
+
+    set({
+      siteDrafts: {
+        ...siteDrafts,
+        [activeSite]: {
+          ...currentDraft,
+          edges: updatedEdges,
+        },
+      },
+    })
+  },
+
+  // Handle new edge connection
+  onConnect: (connection) => {
+    const { activeSite, siteDrafts, recordHistory } = get()
+    const currentDraft = siteDrafts[activeSite]
+    if (!currentDraft) return
+
+    // Prevent connecting node to itself
+    if (connection.source === connection.target) {
+      set({
+        notification: {
+          type: 'warning',
+          message: 'Cannot connect a node to itself.',
+        },
+      })
+      return
+    }
+
+    // Check if identical connection already exists
+    const duplicate = currentDraft.edges.some(
+      (e) =>
+        e.source === connection.source &&
+        e.target === connection.target &&
+        e.sourceHandle === connection.sourceHandle &&
+        e.targetHandle === connection.targetHandle
+    )
+
+    if (duplicate) {
+      set({
+        notification: {
+          type: 'warning',
+          message: 'Connection already exists between these handle ports.',
+        },
+      })
+      return
+    }
+
+    const history = recordHistory()
+
+    const edgeWithStyling = {
+      ...connection,
+      id: `edge_${connection.source}_${connection.target}_${Date.now()}`,
+      type: 'smoothstep',
+      animated: true,
+      style: { stroke: '#a855f7', strokeWidth: 2.5 },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: '#a855f7',
+        width: 18,
+        height: 18,
+      },
+    }
+
+    const updatedEdges = addEdge(edgeWithStyling, currentDraft.edges)
+
+    set({
+      siteDrafts: {
+        ...siteDrafts,
+        [activeSite]: {
+          ...currentDraft,
+          edges: updatedEdges,
+          history,
+        },
+      },
+      notification: {
+        type: 'info',
+        message: 'Connected step successfully.',
+      },
+    })
+  },
+
+  // Add a new node to the active canvas
+  addNode: (node) => {
+    const { activeSite, siteDrafts, recordHistory } = get()
+    const currentDraft = siteDrafts[activeSite]
+    if (!currentDraft) return
+
+    // Prevent duplicate IDs
+    if (currentDraft.nodes.some((n) => n.id === node.id)) {
+      return
+    }
+
+    // Initialize initial default settings configuration
+    const initialConfig = {}
+    if (node.data?.supportedSettings) {
+      node.data.supportedSettings.forEach((setting) => {
+        initialConfig[setting.key] = setting.defaultValue ?? ''
+      })
+    }
+
+    const nodeWithDefaults = {
+      ...node,
+      data: {
+        ...node.data,
+        config: initialConfig,
+      },
+    }
+
+    const history = recordHistory()
+    const updatedNodes = [...currentDraft.nodes, nodeWithDefaults]
+
+    set({
+      selectedNodeId: nodeWithDefaults.id,
+      selectedModule: null,
+      siteDrafts: {
+        ...siteDrafts,
+        [activeSite]: {
+          ...currentDraft,
+          nodes: updatedNodes,
+          history,
+        },
+      },
+    })
+  },
+
+  // Delete a specific node and its associated edges
+  deleteNode: (nodeId) => {
+    const { activeSite, siteDrafts, recordHistory } = get()
+    const currentDraft = siteDrafts[activeSite]
+    if (!currentDraft) return
+
+    const history = recordHistory()
+    const updatedNodes = currentDraft.nodes.filter((n) => n.id !== nodeId)
+    const updatedEdges = currentDraft.edges.filter(
+      (e) => e.source !== nodeId && e.target !== nodeId
+    )
+
+    set({
+      selectedNodeId: get().selectedNodeId === nodeId ? null : get().selectedNodeId,
+      siteDrafts: {
+        ...siteDrafts,
+        [activeSite]: {
+          ...currentDraft,
+          nodes: updatedNodes,
+          edges: updatedEdges,
+          history,
+        },
+      },
+    })
+  },
+
+  // Delete a specific edge
+  deleteEdge: (edgeId) => {
+    const { activeSite, siteDrafts, recordHistory } = get()
+    const currentDraft = siteDrafts[activeSite]
+    if (!currentDraft) return
+
+    const history = recordHistory()
+    const updatedEdges = currentDraft.edges.filter((e) => e.id !== edgeId)
+
+    set({
+      siteDrafts: {
+        ...siteDrafts,
+        [activeSite]: {
+          ...currentDraft,
+          edges: updatedEdges,
+          history,
+        },
+      },
+    })
+  },
+
+  // Update a placed node's label
+  updateNodeLabel: (nodeId, newLabel) => {
+    const { activeSite, siteDrafts } = get()
+    const currentDraft = siteDrafts[activeSite]
+    if (!currentDraft) return
+
+    const updatedNodes = currentDraft.nodes.map((node) => {
+      if (node.id === nodeId) {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            label: newLabel,
+          },
+        }
+      }
+      return node
+    })
+
+    set({
+      siteDrafts: {
+        ...siteDrafts,
+        [activeSite]: {
+          ...currentDraft,
+          nodes: updatedNodes,
+        },
+      },
+    })
+  },
+
+  // Update a placed node's configuration parameter
+  updateNodeConfig: (nodeId, settingKey, value) => {
+    const { activeSite, siteDrafts, recordHistory } = get()
+    const currentDraft = siteDrafts[activeSite]
+    if (!currentDraft) return
+
+    const history = recordHistory()
+    const updatedNodes = currentDraft.nodes.map((node) => {
+      if (node.id === nodeId) {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            config: {
+              ...(node.data.config || {}),
+              [settingKey]: value,
+            },
+          },
+        }
+      }
+      return node
+    })
+
+    set({
+      siteDrafts: {
+        ...siteDrafts,
+        [activeSite]: {
+          ...currentDraft,
+          nodes: updatedNodes,
+          history,
+        },
+      },
+    })
+  },
+
+  // Clear all nodes and edges for the active site
+  clearGraph: () => {
+    const { activeSite, siteDrafts, recordHistory } = get()
+    const currentDraft = siteDrafts[activeSite]
+    if (!currentDraft) return
+
+    const history = recordHistory()
+
+    set({
+      selectedNodeId: null,
+      selectedModule: null,
+      siteDrafts: {
+        ...siteDrafts,
+        [activeSite]: {
+          ...currentDraft,
+          nodes: [],
+          edges: [],
+          history,
+        },
+      },
+      notification: {
+        type: 'info',
+        message: `Cleared all nodes and edges from ${currentDraft.workflowName}.`,
+      },
+    })
+  },
+
+  // Select module from palette
   setSelectedModule: (mod) => {
     set({ selectedModule: mod, selectedNodeId: null })
   },
@@ -116,6 +452,19 @@ export const useWorkflowStore = create((set, get) => ({
         [activeSite]: {
           ...siteDrafts[activeSite],
           zoom: 100,
+        },
+      },
+    })
+  },
+
+  setZoom: (zoom) => {
+    const { activeSite, siteDrafts } = get()
+    set({
+      siteDrafts: {
+        ...siteDrafts,
+        [activeSite]: {
+          ...siteDrafts[activeSite],
+          zoom: Math.round(zoom),
         },
       },
     })
@@ -181,7 +530,14 @@ export const useWorkflowStore = create((set, get) => ({
     })
   },
 
-  // Save draft locally (honest messaging: Part 1 in-memory only)
+  // Get validation report for active draft
+  getActiveValidationReport: () => {
+    const { activeSite, siteDrafts } = get()
+    const currentDraft = siteDrafts[activeSite] || { nodes: [], edges: [] }
+    return validateWorkflow(currentDraft.nodes, currentDraft.edges)
+  },
+
+  // Save draft locally (honest messaging)
   triggerSaveDraft: () => {
     const { activeSite, siteDrafts } = get()
     const timestamp = new Date().toLocaleTimeString()
@@ -195,18 +551,44 @@ export const useWorkflowStore = create((set, get) => ({
       },
       notification: {
         type: 'info',
-        message: `Draft saved to local memory for ${siteDrafts[activeSite].workflowName}. Backend persistence will be connected in Part 6.`,
+        message: `Draft stored in local memory (${siteDrafts[activeSite].nodes.length} nodes, ${siteDrafts[activeSite].edges.length} edges). Backend API persistence is scheduled for Part 6.`,
       },
     })
   },
 
-  // Publish workflow (honest messaging: locked until Part 6)
+  // Publish workflow (honest messaging)
   triggerPublish: () => {
+    const { activeSite, siteDrafts } = get()
+    const currentDraft = siteDrafts[activeSite]
+    const validation = validateWorkflow(currentDraft.nodes, currentDraft.edges)
+
+    if (currentDraft.nodes.length === 0) {
+      set({
+        notification: {
+          type: 'warning',
+          message: 'Cannot publish an empty workflow. Add modules from the palette first.',
+        },
+      })
+      return
+    }
+
+    if (validation.hasErrors) {
+      set({
+        notification: {
+          type: 'warning',
+          message: `Cannot publish: ${validation.errorsCount} validation ${
+            validation.errorsCount === 1 ? 'error' : 'errors'
+          } found. Review the Inspector validation summary.`,
+        },
+      })
+      return
+    }
+
     set({
       notification: {
         type: 'warning',
         message:
-          'Publishing requires Graph Validation (Part 4) and Integration Export (Part 6). Currently running Part 1 UI Foundation.',
+          'Publishing is locked: Requires Production Site Integration & Version Tagging (Part 6). Validated draft remains in memory.',
       },
     })
   },

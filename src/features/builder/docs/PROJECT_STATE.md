@@ -38,9 +38,9 @@ The project runtime and build tooling are installed and operational:
 | Part | Description | Status | Evidence in Codebase |
 |---|---|---|---|
 | **Part 1** | Builder UI foundation | 🟢 **Completed** | `BuilderLayout.jsx`, `BuilderToolbar.jsx`, `ModulePalette.jsx`, `WorkflowCanvas.jsx`, `InspectorPanel.jsx`, `useWorkflowStore.js` rendered via `src/App.jsx`. |
-| **Part 2** | Drag-and-drop canvas and connections | **Not Started** | Canvas wrapper ready with grid & empty state; `@xyflow/react` node/edge drag-and-drop to be connected. |
-| **Part 3** | Module registry and settings | **Not Started** | No registry for Central Stores, Service Centre, or Distribution modules exists. |
-| **Part 4** | Validation and preview | **Not Started** | No graph traversal or topological validation logic implemented. |
+| **Part 2** | Drag-and-drop canvas and connections | 🟢 **Completed** | Full `@xyflow/react` interactive canvas, visible connection handles and animated edges, HTML5 drag-and-drop & quick-add, node/edge deletion, zoom/fit-view controls via `useReactFlow`, Light/Dark theme toggle, exactly 13 approved core modules + 20 operational steps, and isolated per-site state. |
+| **Part 3** | Module registry and settings | 🟢 **Completed** | Dynamic form generation in `InspectorPanel.jsx` based on module settings schemas, bidirectional parameter mutation via `useWorkflowStore.updateNodeConfig`, inline validation feedback, and full `validateWorkflow.js` topology/settings validation engine with clickable issue navigation. |
+| **Part 4** | Validation and preview | **Not Started** | Validation engine initialized in Part 3; dry-run path simulator, linear execution preview, and comprehensive schema gates scheduled for Part 4. |
 | **Part 5** | OpsHub Time Machine simulation | **Not Started** | No deterministic state machine or simulation runner implemented. |
 | **Part 6** | Publish, versioning and integration | **Not Started** | No workflow serialization, versioning store, or site handoff triggers implemented. |
 
@@ -48,12 +48,18 @@ The project runtime and build tooling are installed and operational:
 
 ## 4. Current Workspace Files Status
 
-- `src/features/builder/` — Directory scaffolded with `.gitkeep`; no source files present.
-- `src/features/central-stores/` — Directory scaffolded with `.gitkeep`; site data models not yet populated.
-- `src/features/service-centre/` — Directory scaffolded with `.gitkeep`; ticket/triage models not yet populated.
-- `src/features/distribution/` — Directory scaffolded with `.gitkeep`; fulfillment/dispatch models not yet populated.
-- `src/app/`, `src/components/`, `src/config/`, `src/data/`, `src/lib/`, `src/store/` — All directories currently contain `.gitkeep`.
-- `src/App.jsx` — Default Vite starter application.
+- `src/features/builder/` — Feature active:
+  - `components/BuilderLayout.jsx` — Master layout with Light/Dark theme and status bar.
+  - `components/BuilderToolbar.jsx` — Toolbar with theme switcher, site dropdown, zoom/fit-view, and action buttons.
+  - `components/ModulePalette.jsx` — 13 Core Modules + 20 Operational Steps with drag-and-drop & quick-add.
+  - `components/WorkflowCanvas.jsx` — Interactive `@xyflow/react` canvas with smoothstep routing, grid, and minimap.
+  - `components/InspectorPanel.jsx` — Node settings form, live inline validation, and clickable issue summary.
+  - `nodes/WorkflowNode.jsx` — Custom node with typed handles, theme adaptation, and validation error badges.
+  - `store/useWorkflowStore.js` — Zustand store with isolated drafts per facility, history, and theme state.
+  - `registry/siteModules.js` — All 33 approved modules with typed settings schemas.
+  - `validation/validateWorkflow.js` — Graph topology and settings validation engine.
+  - `docs/` — Tracking documentation suite.
+- `src/App.jsx` — Mounts `<BuilderLayout />` as main application entry point.
 - `src/index.css` — Configured with Tailwind base directives and clean system font defaults.
 
 ---
