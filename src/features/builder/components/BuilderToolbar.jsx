@@ -18,6 +18,8 @@ import {
   Trash,
   Sun,
   Moon,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 import { useReactFlow } from '@xyflow/react'
 import { useWorkflowStore } from '../store/useWorkflowStore'
@@ -34,6 +36,8 @@ export function BuilderToolbar() {
   const siteDrafts = useWorkflowStore((s) => s.siteDrafts)
   const setActiveSite = useWorkflowStore((s) => s.setActiveSite)
   const setWorkflowName = useWorkflowStore((s) => s.setWorkflowName)
+  const isPreviewMode = useWorkflowStore((s) => s.isPreviewMode)
+  const togglePreviewMode = useWorkflowStore((s) => s.togglePreviewMode)
   const isSimulationMode = useWorkflowStore((s) => s.isSimulationMode)
   const toggleSimulationMode = useWorkflowStore((s) => s.toggleSimulationMode)
   const undo = useWorkflowStore((s) => s.undo)
@@ -178,14 +182,24 @@ export function BuilderToolbar() {
             type="text"
             value={currentDraft.workflowName || ''}
             onChange={(e) => setWorkflowName(e.target.value)}
+            disabled={isPreviewMode}
             className={`border rounded-md px-2 py-1 text-xs font-semibold focus:outline-none transition-colors w-64 max-w-xs truncate ${
-              isDark
+              isPreviewMode
+                ? isDark
+                  ? 'bg-slate-950/40 border-transparent text-slate-300 cursor-default'
+                  : 'bg-slate-100/60 border-transparent text-slate-700 cursor-default'
+                : isDark
                 ? 'bg-transparent hover:bg-slate-800/60 focus:bg-slate-950 border-transparent focus:border-purple-500 text-slate-100'
                 : 'bg-transparent hover:bg-slate-100 focus:bg-white border-transparent focus:border-purple-500 text-slate-800'
             }`}
-            title="Click to rename workflow draft"
+            title={isPreviewMode ? 'Workflow renaming locked in Preview mode' : 'Click to rename workflow draft'}
             placeholder="Workflow title..."
           />
+          {isPreviewMode && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-500/40 font-semibold tracking-wide uppercase">
+              Preview Mode
+            </span>
+          )}
         </div>
       </div>
 
@@ -197,10 +211,16 @@ export function BuilderToolbar() {
         <button
           type="button"
           onClick={undo}
-          disabled={pastCount === 0}
-          title={pastCount > 0 ? `Undo (${pastCount} actions available, Ctrl+Z)` : 'Nothing to undo'}
+          disabled={pastCount === 0 || isPreviewMode}
+          title={
+            isPreviewMode
+              ? 'Undo disabled in Preview mode'
+              : pastCount > 0
+              ? `Undo (${pastCount} actions available, Ctrl+Z)`
+              : 'Nothing to undo'
+          }
           className={`p-1.5 rounded-md transition-colors ${
-            pastCount > 0
+            !isPreviewMode && pastCount > 0
               ? isDark
                 ? 'hover:bg-slate-800 text-slate-200'
                 : 'hover:bg-white text-slate-700 shadow-xs'
@@ -214,10 +234,16 @@ export function BuilderToolbar() {
         <button
           type="button"
           onClick={redo}
-          disabled={futureCount === 0}
-          title={futureCount > 0 ? `Redo (${futureCount} actions available, Ctrl+Y)` : 'Nothing to redo'}
+          disabled={futureCount === 0 || isPreviewMode}
+          title={
+            isPreviewMode
+              ? 'Redo disabled in Preview mode'
+              : futureCount > 0
+              ? `Redo (${futureCount} actions available, Ctrl+Y)`
+              : 'Nothing to redo'
+          }
           className={`p-1.5 rounded-md transition-colors ${
-            futureCount > 0
+            !isPreviewMode && futureCount > 0
               ? isDark
                 ? 'hover:bg-slate-800 text-slate-200'
                 : 'hover:bg-white text-slate-700 shadow-xs'
@@ -229,7 +255,7 @@ export function BuilderToolbar() {
 
         <div className={`w-[1px] h-4 mx-0.5 ${isDark ? 'bg-slate-800' : 'bg-slate-300'}`} />
 
-        {/* Zoom Out */}
+        {/* Zoom Out (Fully active in Preview mode) */}
         <button
           type="button"
           onClick={handleZoomOut}
@@ -241,7 +267,7 @@ export function BuilderToolbar() {
           <ZoomOut className="w-3.5 h-3.5" />
         </button>
 
-        {/* Fit View / Center */}
+        {/* Fit View / Center (Fully active in Preview mode) */}
         <button
           type="button"
           onClick={handleFitView}
@@ -253,7 +279,7 @@ export function BuilderToolbar() {
           <Maximize2 className="w-3.5 h-3.5" />
         </button>
 
-        {/* Zoom In */}
+        {/* Zoom In (Fully active in Preview mode) */}
         <button
           type="button"
           onClick={handleZoomIn}
@@ -270,10 +296,16 @@ export function BuilderToolbar() {
         <button
           type="button"
           onClick={clearGraph}
-          disabled={nodeCount === 0}
-          title={nodeCount > 0 ? `Clear ${nodeCount} nodes from canvas` : 'Canvas is empty'}
+          disabled={nodeCount === 0 || isPreviewMode}
+          title={
+            isPreviewMode
+              ? 'Clear canvas disabled in Preview mode'
+              : nodeCount > 0
+              ? `Clear ${nodeCount} nodes from canvas`
+              : 'Canvas is empty'
+          }
           className={`p-1.5 rounded-md transition-colors ${
-            nodeCount > 0
+            !isPreviewMode && nodeCount > 0
               ? 'hover:bg-rose-500/15 text-slate-400 hover:text-rose-500'
               : 'text-slate-400 opacity-40 cursor-not-allowed'
           }`}
@@ -282,7 +314,7 @@ export function BuilderToolbar() {
         </button>
       </div>
 
-      {/* Right: Theme Toggle, Simulation Preview, Save Draft & Publish */}
+      {/* Right: Theme Toggle, Preview Button, Simulation Preview, Save Draft & Publish */}
       <div className="flex items-center gap-2">
         {/* Light / Dark Theme Toggle */}
         <button
@@ -298,18 +330,55 @@ export function BuilderToolbar() {
           {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
         </button>
 
+        {/* PREVIEW BUTTON (Part 4) */}
+        <button
+          type="button"
+          onClick={togglePreviewMode}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+            isPreviewMode
+              ? 'bg-purple-600 hover:bg-purple-700 text-white border-purple-500 shadow-sm ring-2 ring-purple-500/30'
+              : isDark
+              ? 'bg-slate-800/90 hover:bg-slate-800 text-purple-300 hover:text-purple-200 border-purple-500/30 hover:border-purple-500/50'
+              : 'bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200 shadow-xs'
+          }`}
+          title={
+            isPreviewMode
+              ? 'Exit Preview mode and return to full canvas editor'
+              : 'Preview current site workflow in clean, read-only mode'
+          }
+        >
+          {isPreviewMode ? (
+            <>
+              <EyeOff className="w-3.5 h-3.5" />
+              <span>Exit Preview</span>
+            </>
+          ) : (
+            <>
+              <Eye className="w-3.5 h-3.5 text-purple-500" />
+              <span>Preview</span>
+            </>
+          )}
+        </button>
+
         {/* Simulation Mode Toggle (Clearly marked preview) */}
         <button
           type="button"
           onClick={toggleSimulationMode}
+          disabled={isPreviewMode}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-            isSimulationMode
+            isPreviewMode
+              ? 'opacity-40 cursor-not-allowed bg-slate-800/50 border-slate-800 text-slate-400'
+              : isSimulationMode
               ? 'bg-amber-500/15 text-amber-600 dark:text-amber-300 border-amber-500/40 shadow-xs'
               : isDark
               ? 'bg-slate-800/90 hover:bg-slate-800 text-slate-300 border-slate-700'
               : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
           }`}
-          title="Time Machine (Historical playback & what-if simulator scheduled for Part 5)"
+          title={
+            isPreviewMode
+              ? 'Time machine disabled in Preview mode'
+              : 'Time Machine (Historical playback & what-if simulator scheduled for Part 5)'
+          }
         >
           {isSimulationMode ? (
             <>
@@ -328,12 +397,19 @@ export function BuilderToolbar() {
         <button
           type="button"
           onClick={triggerSaveDraft}
+          disabled={isPreviewMode}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-            isDark
+            isPreviewMode
+              ? 'opacity-40 cursor-not-allowed border-slate-800 text-slate-400'
+              : isDark
               ? 'bg-slate-800/90 hover:bg-slate-800 text-slate-200 border-slate-700'
               : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200 shadow-xs'
           }`}
-          title="Save draft (stored in local memory; backend persistence scheduled for Part 6)"
+          title={
+            isPreviewMode
+              ? 'Save draft disabled in Preview mode (Exit preview to save)'
+              : 'Save draft (stored in local memory; backend persistence scheduled for Part 6)'
+          }
         >
           <Save className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
           <span>Save Draft</span>
@@ -344,8 +420,17 @@ export function BuilderToolbar() {
         <button
           type="button"
           onClick={triggerPublish}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white shadow-sm transition-colors"
-          title="Publish workflow (Unlocks after Part 4 validation & Part 6 integration)"
+          disabled={isPreviewMode}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-colors ${
+            isPreviewMode
+              ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-400'
+              : 'bg-purple-600 hover:bg-purple-700 text-white'
+          }`}
+          title={
+            isPreviewMode
+              ? 'Publishing disabled in Preview mode'
+              : 'Publish workflow (Unlocks after Part 4 validation & Part 6 integration)'
+          }
         >
           <UploadCloud className="w-3.5 h-3.5" />
           <span>Publish</span>

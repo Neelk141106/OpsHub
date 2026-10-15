@@ -74,6 +74,7 @@ function WorkflowNodeComponent({ id, data, selected }) {
   const theme = useWorkflowStore((s) => s.theme)
   const isDark = theme === 'dark'
 
+  const isPreviewMode = useWorkflowStore((s) => s.isPreviewMode)
   const deleteNode = useWorkflowStore((s) => s.deleteNode)
   const getActiveValidationReport = useWorkflowStore((s) => s.getActiveValidationReport)
 
@@ -139,11 +140,19 @@ function WorkflowNodeComponent({ id, data, selected }) {
           type="target"
           position={Position.Left}
           id="in"
-          isConnectable={true}
-          title="Input connection port (Drag connection here)"
+          isConnectable={!isPreviewMode}
+          title={
+            isPreviewMode
+              ? 'Input port (read-only in preview)'
+              : 'Input connection port (Drag connection here)'
+          }
           className={`!w-3.5 !h-3.5 !bg-purple-600 !border-2 ${
             isDark ? '!border-slate-900' : '!border-white'
-          } hover:!scale-150 !transition-transform !cursor-crosshair shadow-md`}
+          } ${
+            isPreviewMode
+              ? '!cursor-default opacity-75'
+              : 'hover:!scale-150 !transition-transform !cursor-crosshair'
+          } shadow-md`}
         />
       )}
 
@@ -180,18 +189,20 @@ function WorkflowNodeComponent({ id, data, selected }) {
             </span>
           )}
 
-          {/* Delete Action Button */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation()
-              deleteNode(id)
-            }}
-            className="p-1 rounded hover:bg-rose-500/15 text-slate-400 hover:text-rose-500 transition-colors"
-            title="Delete node from canvas"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+          {/* Delete Action Button (Hidden in Preview Mode) */}
+          {!isPreviewMode && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                deleteNode(id)
+              }}
+              className="p-1 rounded hover:bg-rose-500/15 text-slate-400 hover:text-rose-500 transition-colors"
+              title="Delete node from canvas"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -239,11 +250,19 @@ function WorkflowNodeComponent({ id, data, selected }) {
           type="source"
           position={Position.Right}
           id="out"
-          isConnectable={true}
-          title="Output connection port (Drag from here to connect next step)"
+          isConnectable={!isPreviewMode}
+          title={
+            isPreviewMode
+              ? 'Output port (read-only in preview)'
+              : 'Output connection port (Drag from here to connect next step)'
+          }
           className={`!w-3.5 !h-3.5 !bg-purple-600 !border-2 ${
             isDark ? '!border-slate-900' : '!border-white'
-          } hover:!scale-150 !transition-transform !cursor-crosshair shadow-md`}
+          } ${
+            isPreviewMode
+              ? '!cursor-default opacity-75'
+              : 'hover:!scale-150 !transition-transform !cursor-crosshair'
+          } shadow-md`}
         />
       )}
 
@@ -253,23 +272,39 @@ function WorkflowNodeComponent({ id, data, selected }) {
             type="source"
             position={Position.Right}
             id="out-true"
-            isConnectable={true}
+            isConnectable={!isPreviewMode}
             style={{ top: '35%' }}
-            title="Success / True execution branch"
+            title={
+              isPreviewMode
+                ? 'Success branch (read-only in preview)'
+                : 'Success / True execution branch'
+            }
             className={`!w-3.5 !h-3.5 !bg-emerald-500 !border-2 ${
               isDark ? '!border-slate-900' : '!border-white'
-            } hover:!scale-150 !transition-transform !cursor-crosshair shadow-md`}
+            } ${
+              isPreviewMode
+                ? '!cursor-default opacity-75'
+                : 'hover:!scale-150 !transition-transform !cursor-crosshair'
+            } shadow-md`}
           />
           <Handle
             type="source"
             position={Position.Right}
             id="out-false"
-            isConnectable={true}
+            isConnectable={!isPreviewMode}
             style={{ top: '65%' }}
-            title="Alternative / False execution branch"
+            title={
+              isPreviewMode
+                ? 'Alternative branch (read-only in preview)'
+                : 'Alternative / False execution branch'
+            }
             className={`!w-3.5 !h-3.5 !bg-rose-500 !border-2 ${
               isDark ? '!border-slate-900' : '!border-white'
-            } hover:!scale-150 !transition-transform !cursor-crosshair shadow-md`}
+            } ${
+              isPreviewMode
+                ? '!cursor-default opacity-75'
+                : 'hover:!scale-150 !transition-transform !cursor-crosshair'
+            } shadow-md`}
           />
         </>
       )}

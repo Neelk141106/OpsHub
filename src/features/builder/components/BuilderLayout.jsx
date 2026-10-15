@@ -19,6 +19,7 @@ export function BuilderLayout() {
   const isDark = theme === 'dark'
 
   const activeSite = useWorkflowStore((s) => s.activeSite)
+  const isPreviewMode = useWorkflowStore((s) => s.isPreviewMode)
   const notification = useWorkflowStore((s) => s.notification)
   const clearNotification = useWorkflowStore((s) => s.clearNotification)
   const getActiveValidationReport = useWorkflowStore((s) => s.getActiveValidationReport)
@@ -104,20 +105,28 @@ export function BuilderLayout() {
             <span className="text-slate-400">|</span>
             <span>Facility: {currentSiteMeta.name}</span>
             <span className="text-slate-400">|</span>
-            <span className="text-slate-400">Part 2 Canvas & Part 3 Configuration Active</span>
+            {isPreviewMode ? (
+              <span className="text-purple-400 font-medium">Preview Mode Active (Read-Only)</span>
+            ) : (
+              <span className="text-slate-400">Part 2 Canvas & Part 3 Configuration Active</span>
+            )}
           </div>
 
           <div className="flex items-center gap-4 font-mono text-[10px]">
             <div className="flex items-center gap-1">
               <Keyboard className="w-3 h-3 text-slate-400" />
-              <span>Del Delete • Ctrl+Z Undo • Ctrl+Y Redo</span>
+              <span>
+                {isPreviewMode
+                  ? 'Click Node to Inspect • Zoom & Pan Canvas'
+                  : 'Del Delete • Ctrl+Z Undo • Ctrl+Y Redo'}
+              </span>
             </div>
             <span>•</span>
             <span className="uppercase text-[9px] px-1 py-0.2 rounded bg-purple-500/20 text-purple-600 dark:text-purple-300 font-bold">
               {theme} mode
             </span>
             <span>•</span>
-            <span>OpsHub v0.3.0</span>
+            <span>OpsHub v0.4.0 (Part 4: Preview)</span>
           </div>
         </footer>
       </div>

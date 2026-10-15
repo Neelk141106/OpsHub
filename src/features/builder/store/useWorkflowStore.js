@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { applyNodeChanges, applyEdgeChanges, addEdge, MarkerType } from '@xyflow/react'
-import { validateWorkflow } from '../validation/validateWorkflow'
+import { validateWorkflow } from '../validation/validateWorkflow.js'
 
 const INITIAL_SITE_DRAFTS = {
   'central-stores': {
@@ -44,12 +44,21 @@ export const useWorkflowStore = create((set, get) => ({
   selectedNodeId: null,
 
   // UI modes & status
+  isPreviewMode: false,
   isSimulationMode: false,
   notification: null,
 
   // Toggle Light / Dark theme
   toggleTheme: () => {
     set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' }))
+  },
+
+  // Toggle or set Preview Mode (Part 4)
+  setPreviewMode: (isPreview) => {
+    set({ isPreviewMode: Boolean(isPreview) })
+  },
+  togglePreviewMode: () => {
+    set((state) => ({ isPreviewMode: !state.isPreviewMode }))
   },
 
   // Switch active site (preserves separate drafts per site)
@@ -63,8 +72,9 @@ export const useWorkflowStore = create((set, get) => ({
     })
   },
 
-  // Update current site's workflow name
+  // Update current site's workflow name (read-only guarded in preview)
   setWorkflowName: (name) => {
+    if (get().isPreviewMode) return
     const { activeSite, siteDrafts } = get()
     set({
       siteDrafts: {
@@ -101,9 +111,41 @@ export const useWorkflowStore = create((set, get) => ({
 
   // Handle changes dispatched by @xyflow/react (position, selection, removal)
   onNodesChange: (changes) => {
-    const { activeSite, siteDrafts } = get()
+    const { activeSite, siteDrafts, isPreviewMode } = get()
     const currentDraft = siteDrafts[activeSite]
     if (!currentDraft) return
+
+    // Preview Mode strictly prevents node movement and node deletion
+    if (isPreviewMode) {
+      const allowedChanges = changes.filter(
+        (c) => c.type === 'select' || c.type === 'dimensions'
+      )
+      if (allowedChanges.length === 0) return
+
+      const updatedNodes = applyNodeChanges(allowedChanges, currentDraft.nodes)
+      const selectionChange = allowedChanges.find((c) => c.type === 'select')
+      let newSelectedId = get().selectedNodeId
+
+      if (selectionChange) {
+        if (selectionChange.selected) {
+          newSelectedId = selectionChange.id
+        } else if (newSelectedId === selectionChange.id) {
+          newSelectedId = null
+        }
+      }
+
+      set({
+        selectedNodeId: newSelectedId,
+        siteDrafts: {
+          ...siteDrafts,
+          [activeSite]: {
+            ...currentDraft,
+            nodes: updatedNodes,
+          },
+        },
+      })
+      return
+    }
 
     const updatedNodes = applyNodeChanges(changes, currentDraft.nodes)
 
@@ -133,9 +175,26 @@ export const useWorkflowStore = create((set, get) => ({
 
   // Handle edge changes dispatched by @xyflow/react
   onEdgesChange: (changes) => {
-    const { activeSite, siteDrafts } = get()
+    const { activeSite, siteDrafts, isPreviewMode } = get()
     const currentDraft = siteDrafts[activeSite]
     if (!currentDraft) return
+
+    // Preview Mode strictly prevents edge deletion
+    if (isPreviewMode) {
+      const allowedChanges = changes.filter((c) => c.type === 'select')
+      if (allowedChanges.length === 0) return
+      const updatedEdges = applyEdgeChanges(allowedChanges, currentDraft.edges)
+      set({
+        siteDrafts: {
+          ...siteDrafts,
+          [activeSite]: {
+            ...currentDraft,
+            edges: updatedEdges,
+          },
+        },
+      })
+      return
+    }
 
     const updatedEdges = applyEdgeChanges(changes, currentDraft.edges)
 
@@ -152,6 +211,7 @@ export const useWorkflowStore = create((set, get) => ({
 
   // Handle new edge connection
   onConnect: (connection) => {
+    if (get().isPreviewMode) return
     const { activeSite, siteDrafts, recordHistory } = get()
     const currentDraft = siteDrafts[activeSite]
     if (!currentDraft) return
@@ -222,6 +282,7 @@ export const useWorkflowStore = create((set, get) => ({
 
   // Add a new node to the active canvas
   addNode: (node) => {
+    if (get().isPreviewMode) return
     const { activeSite, siteDrafts, recordHistory } = get()
     const currentDraft = siteDrafts[activeSite]
     if (!currentDraft) return
@@ -266,6 +327,7 @@ export const useWorkflowStore = create((set, get) => ({
 
   // Delete a specific node and its associated edges
   deleteNode: (nodeId) => {
+    if (get().isPreviewMode) return
     const { activeSite, siteDrafts, recordHistory } = get()
     const currentDraft = siteDrafts[activeSite]
     if (!currentDraft) return
@@ -292,6 +354,7 @@ export const useWorkflowStore = create((set, get) => ({
 
   // Delete a specific edge
   deleteEdge: (edgeId) => {
+    if (get().isPreviewMode) return
     const { activeSite, siteDrafts, recordHistory } = get()
     const currentDraft = siteDrafts[activeSite]
     if (!currentDraft) return
@@ -313,6 +376,7 @@ export const useWorkflowStore = create((set, get) => ({
 
   // Update a placed node's label
   updateNodeLabel: (nodeId, newLabel) => {
+    if (get().isPreviewMode) return
     const { activeSite, siteDrafts } = get()
     const currentDraft = siteDrafts[activeSite]
     if (!currentDraft) return
@@ -343,6 +407,7 @@ export const useWorkflowStore = create((set, get) => ({
 
   // Update a placed node's configuration parameter
   updateNodeConfig: (nodeId, settingKey, value) => {
+    if (get().isPreviewMode) return
     const { activeSite, siteDrafts, recordHistory } = get()
     const currentDraft = siteDrafts[activeSite]
     if (!currentDraft) return
@@ -378,6 +443,7 @@ export const useWorkflowStore = create((set, get) => ({
 
   // Clear all nodes and edges for the active site
   clearGraph: () => {
+    if (get().isPreviewMode) return
     const { activeSite, siteDrafts, recordHistory } = get()
     const currentDraft = siteDrafts[activeSite]
     if (!currentDraft) return
@@ -477,6 +543,7 @@ export const useWorkflowStore = create((set, get) => ({
 
   // Undo / Redo controls
   undo: () => {
+    if (get().isPreviewMode) return
     const { activeSite, siteDrafts } = get()
     const currentDraft = siteDrafts[activeSite]
     if (!currentDraft || currentDraft.history.past.length === 0) return
@@ -504,6 +571,7 @@ export const useWorkflowStore = create((set, get) => ({
   },
 
   redo: () => {
+    if (get().isPreviewMode) return
     const { activeSite, siteDrafts } = get()
     const currentDraft = siteDrafts[activeSite]
     if (!currentDraft || currentDraft.history.future.length === 0) return

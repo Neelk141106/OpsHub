@@ -11,8 +11,8 @@ Tracking the 6-part roadmap for the Visual Workflow Builder within OpsHub.
 | **Part 1** | Builder UI Foundation | 🟢 Completed | Sprint 1 | None (Connected to App) |
 | **Part 2** | Drag-and-Drop Canvas & Connections | 🟢 Completed | Sprint 1 | None (Interactive Canvas Live) |
 | **Part 3** | Module Registry & Settings | 🟢 Completed | Sprint 2 | None (Settings & Validation Live) |
-| **Part 4** | Validation & Preview | 🔴 Not Started | Sprint 2 | Ready to begin |
-| **Part 5** | OpsHub Time Machine Simulation | 🔴 Not Started | Sprint 3 | Depends on Part 3, Part 4 |
+| **Part 4** | Workflow Preview | 🟢 Completed | Sprint 2 | Ready for Part 5 |
+| **Part 5** | OpsHub Time Machine Simulation | 🔴 Not Started | Sprint 3 | Depends on Parts 1–4 |
 | **Part 6** | Publish, Versioning & Integration | 🔴 Not Started | Sprint 3 | Depends on Parts 1–5 |
 
 *Status Legend:*
@@ -68,38 +68,19 @@ Tracking the 6-part roadmap for the Visual Workflow Builder within OpsHub.
 
 ---
 
-### Part 3: Module Registry & Settings
-- **Objective:** Populate operational domain modules and provide dynamic parameter configuration.
-- **Status:** 🔴 Not Started
+### Part 4: Workflow Preview
+- **Objective:** Provide a dedicated read-only preview mode for the active site's workflow with graph inspection, validation navigation, and strict mutation locking.
+- **Status:** 🟢 Completed
 - **Key Deliverables:**
-  - [ ] **Central Stores Modules:**
-    - `StoresTrigger`: Stock Arrival, Min Reorder Threshold.
-    - `StoresAction`: Reserve Parts, Allocate Bin, Quarantine Batch.
-  - [ ] **Service Centre Modules:**
-    - `ServiceTrigger`: Repair Intake, Defect Escalation.
-    - `ServiceAction`: Assign Technician, Diagnostics Run, Parts Request, QA Gate.
-  - [ ] **Distribution Modules:**
-    - `DistributionTrigger`: Order Queued, Dispatch Window.
-    - `DistributionAction`: Pick/Pack Verification, Carrier Manifest, Transit Handoff.
-  - [ ] **Flow Control Modules:**
-    - `ConditionNode`: Branching logic based on item status or inventory level.
-    - `ApprovalGate`: Manual supervisor sign-off gate.
-    - `SiteTransitNode`: Cross-facility transit delay and custody tracking.
-  - [ ] Context-sensitive configuration panel: dynamically renders input fields based on selected node type.
-
----
-
-### Part 4: Validation & Preview
-- **Objective:** Ensure graph integrity and offer a read-only preview before deployment.
-- **Status:** 🔴 Not Started
-- **Key Deliverables:**
-  - [ ] Graph topology validator:
-    - [ ] Root trigger existence check (at least one valid trigger node).
-    - [ ] Disconnected/orphan node detection.
-    - [ ] Cyclic loop detection (unless explicitly configured as retry loop).
-    - [ ] Missing required configuration parameters highlight.
-  - [ ] Visual error badges rendered directly on invalid nodes and handles.
-  - [ ] Read-only preview mode showing linear execution path.
+  - [x] High-visibility Preview button in `BuilderToolbar.jsx` with direct toggling between Edit and Preview modes.
+  - [x] Dedicated "Exit Preview / Return to Editor" actions in both the toolbar, canvas banner, and palette overlay.
+  - [x] Read-only canvas: `nodesDraggable={false}`, `nodesConnectable={false}`, and deletion keycodes disabled during preview.
+  - [x] Multi-layer defense in `useWorkflowStore.js`: `addNode`, `deleteNode`, `deleteEdge`, `updateNodeConfig`, `updateNodeLabel`, `clearGraph`, `undo`, `redo`, and `setWorkflowName` strictly guarded against mutation in preview mode.
+  - [x] Read-only parameter inspection in `InspectorPanel.jsx` showing configured values, required flags, and type badges.
+  - [x] Node validation health cards in Inspector distinguishing errors, warnings, and valid status.
+  - [x] Full Workflow Validation Summary showing total errors/warnings, actionable issue descriptions, and click-to-focus navigation that centers on affected nodes via `useReactFlow().setCenter()`.
+  - [x] Strict site isolation: preview operates strictly on the active site draft (`central-stores`, `service-centre`, `distribution`), and exiting preview returns to the same draft with all edits intact.
+  - [x] Polished Light and Dark theme styling with zero layout shift or unnecessary panels.
 
 ---
 

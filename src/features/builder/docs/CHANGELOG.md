@@ -9,10 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned for Part 4 (v0.4.0)
-- Graph execution path simulation and dry-run preview mode.
-- Interactive schema contract matching gates.
-
 ### Planned for Part 5 (v0.5.0)
 - OpsHub Time Machine simulation engine and playback controller bar.
 - Interactive scenario scrubbing and what-if parameter modification.
@@ -20,6 +16,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned for Part 6 (v0.6.0)
 - JSON export/import serializer and semantic versioning stamp.
 - Integration triggers for Central Stores, Service Centre, and Distribution.
+
+---
+
+## [0.4.0] - 2026-10-15
+
+### Added
+- Implemented Part 4 Workflow Preview:
+  - Added dedicated, high-visibility **Preview** button in `BuilderToolbar.jsx` with direct toggle between Edit and Preview modes.
+  - Added "Exit Preview / Return to Editor" actions in Toolbar, floating Canvas HUD banner, and Palette lock banner.
+  - Read-Only Canvas Mode in `WorkflowCanvas.jsx`: `nodesDraggable={false}`, `nodesConnectable={false}`, and deletion hotkeys (`Delete`, `Backspace`) disabled in preview mode.
+  - Defense-in-depth state protection in `useWorkflowStore.js`: `addNode`, `deleteNode`, `deleteEdge`, `updateNodeConfig`, `updateNodeLabel`, `clearGraph`, `undo`, `redo`, and `setWorkflowName` strictly guarded from mutating during preview mode.
+  - Read-Only Node Inspection in `InspectorPanel.jsx`: Placed nodes can be selected to inspect their module name, category, summary, and configured settings values without edit inputs.
+  - Visual Validation Health Indicator: Distinguishes errors (red alert with detailed message), warnings (amber notice), and valid configurations (green checkmark).
+  - Validation Issue Navigation: Clicking an issue in the Validation Summary selects the affected node and centers the canvas directly on it via `useReactFlow().setCenter()`.
+  - Empty state messaging in Inspector: Clear prompt guiding users to select nodes on the canvas in read-only mode, coupled with complete workflow topology and settings validation summary.
+  - Strict Operational Site Isolation: Preview strictly operates on the currently selected site's draft (`Central Stores`, `Service Centre`, `Distribution`); switching sites preserves draft separation, and exiting preview returns to the same draft with all edits intact.
+  - Palette lock in `ModulePalette.jsx`: Dragging cards and `+` quick-add buttons disabled during preview mode with clear contextual notification.
+
+### Affected Files
+- `src/features/builder/store/useWorkflowStore.js` (Modified)
+- `src/features/builder/components/BuilderToolbar.jsx` (Modified)
+- `src/features/builder/components/WorkflowCanvas.jsx` (Modified)
+- `src/features/builder/nodes/WorkflowNode.jsx` (Modified)
+- `src/features/builder/components/InspectorPanel.jsx` (Modified)
+- `src/features/builder/components/ModulePalette.jsx` (Modified)
+- `src/features/builder/components/BuilderLayout.jsx` (Modified)
+- `src/features/builder/docs/PROGRESS.md` (Modified)
+- `src/features/builder/docs/PROJECT_STATE.md` (Modified)
+- `src/features/builder/docs/CHANGELOG.md` (Modified)
+- `src/features/builder/docs/NEXT_STEPS.md` (Modified)
 
 ---
 
@@ -40,17 +66,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Interactive Workflow Validation Summary with clickable links to focus and inspect affected nodes.
   - Inline error messages on form inputs and real-time validation badges on canvas nodes.
 
-### Affected Files
-- `src/features/builder/registry/siteModules.js` (Modified)
-- `src/features/builder/validation/validateWorkflow.js` (Created)
-- `src/features/builder/store/useWorkflowStore.js` (Modified)
-- `src/features/builder/nodes/WorkflowNode.jsx` (Modified)
-- `src/features/builder/components/WorkflowCanvas.jsx` (Modified)
-- `src/features/builder/components/ModulePalette.jsx` (Modified)
-- `src/features/builder/components/InspectorPanel.jsx` (Modified)
-- `src/features/builder/components/BuilderToolbar.jsx` (Modified)
-- `src/features/builder/components/BuilderLayout.jsx` (Modified)
-
 ---
 
 ## [0.2.0] - 2026-10-15
@@ -58,55 +73,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Interactive `@xyflow/react` node canvas in `src/features/builder/components/WorkflowCanvas.jsx`:
   - Drag-and-drop mechanism via HTML5 drag events & `screenToFlowPosition`.
-  - Custom `WorkflowNode.jsx` component featuring site badges, category styling, icons, and input/output handles.
-  - Multi-handle routing support (single-output for actions/triggers, dual-output for conditional gateways).
-  - Background grid and interactive MiniMap navigation with category color-coding.
-  - Keyboard node/edge deletion (`Delete`, `Backspace`) and multi-selection (`Shift`/`Ctrl`).
-  - Clear canvas toolbar action with empty state toggle.
-  - Placed node inspection in `src/features/builder/components/InspectorPanel.jsx` with live node renaming, coordinate display, and wired inbound/outbound edge counters.
-  - Enhanced Zustand store `useWorkflowStore.js` with graph state operations (`onNodesChange`, `onEdgesChange`, `onConnect`, `addNode`, `deleteNode`, `deleteEdge`, `updateNodeLabel`, `clearGraph`) isolated per operational site.
-
-### Affected Files
-- `src/features/builder/nodes/WorkflowNode.jsx` (Created)
-- `src/features/builder/store/useWorkflowStore.js` (Modified)
-- `src/features/builder/components/WorkflowCanvas.jsx` (Modified)
-- `src/features/builder/components/ModulePalette.jsx` (Modified)
-- `src/features/builder/components/InspectorPanel.jsx` (Modified)
-- `src/features/builder/components/BuilderToolbar.jsx` (Modified)
-
-### Planned for Part 3 (v0.3.0)
-- Module registry defining operational cards for Central Stores, Service Centre, and Distribution.
-- Dynamic node inspector form components with schema validation.
-
-### Planned for Part 4 (v0.4.0)
-- Topological graph validator detecting disconnected nodes, cycles, and missing parameters.
-- Canvas-level validation badge rendering.
-
-### Planned for Part 5 (v0.5.0)
-- OpsHub Time Machine simulation engine and playback controller bar.
-- Interactive scenario scrubbing and what-if parameter modification.
-
-### Planned for Part 6 (v0.6.0)
-- JSON export/import serializer and semantic versioning stamp.
-- Integration triggers for Central Stores, Service Centre, and Distribution.
+  - Node selection, movement, deletion, and connection via smoothstep edges.
+- Custom node component `WorkflowNode.jsx`.
+- Module palette with search, category tabs, and drag indicators.
 
 ---
 
-## [0.0.1] - 2026-10-15
+## [0.1.0] - 2026-10-15
 
 ### Added
-- Created lightweight, persistent development tracking documentation in `src/features/builder/docs/`:
-  - `PROJECT_STATE.md`: Captures the actual implementation baseline, verified dependencies, and pending items.
-  - `PROGRESS.md`: Detailed 6-part implementation roadmap with granular deliverables and status flags.
-  - `CHANGELOG.md`: Feature-specific milestone and change tracking.
-  - `DECISIONS.md`: Architectural Decision Records (ADRs) covering canvas library, state management, site contracts, and directory conventions.
-  - `FILE_MAP.md`: Inventory of existing scaffolding and mapped responsibilities for all planned feature files.
-  - `NEXT_STEPS.md`: Immediate specifications and acceptance criteria for Part 1 (Builder UI Foundation).
-
-### Affected Files
-- `src/features/builder/docs/PROJECT_STATE.md` (Created)
-- `src/features/builder/docs/PROGRESS.md` (Created)
-- `src/features/builder/docs/CHANGELOG.md` (Created)
-- `src/features/builder/docs/DECISIONS.md` (Created)
-- `src/features/builder/docs/FILE_MAP.md` (Created)
-- `src/features/builder/docs/NEXT_STEPS.md` (Created)
+- Base layout foundation (`BuilderLayout.jsx`, `BuilderToolbar.jsx`, `InspectorPanel.jsx`).
+- Zustand store scaffolding (`useWorkflowStore.js`).
+- Initial tracking documentation suite.

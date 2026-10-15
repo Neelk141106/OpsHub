@@ -35,6 +35,7 @@ import {
   GripVertical,
   SlidersHorizontal,
   Plus,
+  Lock,
 } from 'lucide-react'
 import { useWorkflowStore } from '../store/useWorkflowStore'
 import { WORKFLOW_MODULES, SITES, MODULE_CATEGORIES } from '../registry/siteModules'
@@ -100,6 +101,8 @@ export function ModulePalette() {
   const isDark = theme === 'dark'
 
   const activeSite = useWorkflowStore((s) => s.activeSite)
+  const isPreviewMode = useWorkflowStore((s) => s.isPreviewMode)
+  const togglePreviewMode = useWorkflowStore((s) => s.togglePreviewMode)
   const selectedModule = useWorkflowStore((s) => s.selectedModule)
   const setSelectedModule = useWorkflowStore((s) => s.setSelectedModule)
   const addNode = useWorkflowStore((s) => s.addNode)
@@ -203,6 +206,10 @@ export function ModulePalette() {
 
   // Drag start handler for @xyflow/react canvas
   const onDragStart = (event, mod) => {
+    if (isPreviewMode) {
+      event.preventDefault()
+      return
+    }
     event.dataTransfer.setData('application/reactflow', JSON.stringify(mod))
     event.dataTransfer.effectAllowed = 'move'
   }
@@ -210,6 +217,7 @@ export function ModulePalette() {
   // Quick-add module directly onto the canvas
   const handleQuickAdd = (e, mod) => {
     e.stopPropagation()
+    if (isPreviewMode) return
     const node = createQuickNode(mod)
     addNode(node)
   }
@@ -258,6 +266,23 @@ export function ModulePalette() {
             </button>
           )}
         </div>
+
+        {/* Preview Mode Locked Banner */}
+        {isPreviewMode && (
+          <div className="mb-2 p-2 rounded-lg bg-purple-950/50 border border-purple-500/40 text-[11px] text-purple-200 flex items-center justify-between gap-2">
+            <span className="flex items-center gap-1.5 font-medium">
+              <Lock className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+              <span>Palette locked in Preview</span>
+            </span>
+            <button
+              type="button"
+              onClick={togglePreviewMode}
+              className="text-[10px] underline hover:text-white font-semibold flex-shrink-0 cursor-pointer"
+            >
+              Return to Editor
+            </button>
+          </div>
+        )}
 
         {/* Scope Tabs: Core (13) vs Operational (20) vs All (33) */}
         <div className="grid grid-cols-3 gap-1 p-0.5 rounded-lg bg-slate-950/40 border border-slate-800/80 mb-2 text-[11px] text-center">
@@ -377,17 +402,21 @@ export function ModulePalette() {
                   return (
                     <div
                       key={mod.id}
-                      draggable
+                      draggable={!isPreviewMode}
                       onDragStart={(e) => onDragStart(e, mod)}
                       onClick={() => setSelectedModule(mod)}
-                      className={`group p-2.5 rounded-lg border text-left cursor-grab active:cursor-grabbing transition-all ${
+                      className={`group p-2.5 rounded-lg border text-left transition-all ${
                         isSelected
                           ? 'bg-purple-950/40 border-purple-500/70 shadow-sm shadow-purple-950 ring-1 ring-purple-500/30'
                           : isDark
                           ? 'bg-slate-950/60 hover:bg-slate-800/80 border-slate-800 hover:border-slate-700'
                           : 'bg-slate-50 hover:bg-slate-100/90 border-slate-200 hover:border-slate-300'
-                      }`}
-                      title="Drag to canvas or click + to add"
+                      } ${isPreviewMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'}`}
+                      title={
+                        isPreviewMode
+                          ? 'Module editing locked in Preview mode'
+                          : 'Drag to canvas or click + to add'
+                      }
                     >
                       <div className="flex items-start justify-between gap-2 mb-1.5">
                         <div className="flex items-center gap-2 min-w-0">
@@ -408,13 +437,24 @@ export function ModulePalette() {
                         <div className="flex items-center gap-1">
                           <button
                             type="button"
+                            disabled={isPreviewMode}
                             onClick={(e) => handleQuickAdd(e, mod)}
-                            className="p-1 rounded bg-slate-800/80 hover:bg-purple-600 text-slate-400 hover:text-white border border-slate-700 transition-colors"
-                            title="Add directly to canvas"
+                            className={`p-1 rounded border transition-colors ${
+                              isPreviewMode
+                                ? 'bg-slate-800/40 text-slate-500 opacity-40 cursor-not-allowed border-slate-800'
+                                : 'bg-slate-800/80 hover:bg-purple-600 text-slate-400 hover:text-white border-slate-700'
+                            }`}
+                            title={
+                              isPreviewMode
+                                ? 'Adding modules disabled in Preview mode'
+                                : 'Add directly to canvas'
+                            }
                           >
                             <Plus className="w-3 h-3" />
                           </button>
-                          <GripVertical className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300 flex-shrink-0 mt-0.5" />
+                          {!isPreviewMode && (
+                            <GripVertical className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300 flex-shrink-0 mt-0.5" />
+                          )}
                         </div>
                       </div>
 

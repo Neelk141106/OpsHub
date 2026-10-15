@@ -40,9 +40,9 @@ The project runtime and build tooling are installed and operational:
 | **Part 1** | Builder UI foundation | 🟢 **Completed** | `BuilderLayout.jsx`, `BuilderToolbar.jsx`, `ModulePalette.jsx`, `WorkflowCanvas.jsx`, `InspectorPanel.jsx`, `useWorkflowStore.js` rendered via `src/App.jsx`. |
 | **Part 2** | Drag-and-drop canvas and connections | 🟢 **Completed** | Full `@xyflow/react` interactive canvas, visible connection handles and animated edges, HTML5 drag-and-drop & quick-add, node/edge deletion, zoom/fit-view controls via `useReactFlow`, Light/Dark theme toggle, exactly 13 approved core modules + 20 operational steps, and isolated per-site state. |
 | **Part 3** | Module registry and settings | 🟢 **Completed** | Dynamic form generation in `InspectorPanel.jsx` based on module settings schemas, bidirectional parameter mutation via `useWorkflowStore.updateNodeConfig`, inline validation feedback, and full `validateWorkflow.js` topology/settings validation engine with clickable issue navigation. |
-| **Part 4** | Validation and preview | **Not Started** | Validation engine initialized in Part 3; dry-run path simulator, linear execution preview, and comprehensive schema gates scheduled for Part 4. |
-| **Part 5** | OpsHub Time Machine simulation | **Not Started** | No deterministic state machine or simulation runner implemented. |
-| **Part 6** | Publish, versioning and integration | **Not Started** | No workflow serialization, versioning store, or site handoff triggers implemented. |
+| **Part 4** | Workflow Preview | 🟢 **Completed** | Dedicated Preview Mode toggled via `BuilderToolbar.jsx`, multi-layer read-only mutation guards in `useWorkflowStore.js`, read-only node inspection & configured settings view in `InspectorPanel.jsx`, validation health indicators (errors, warnings, valid), click-to-focus canvas navigation via `useReactFlow().setCenter()`, and strict site draft isolation across Central Stores, Service Centre, and Distribution. |
+| **Part 5** | OpsHub Time Machine simulation | 🔴 **Not Started** | Deterministic simulation engine, timeline scrubber, and scenario what-if controls scheduled for Part 5. |
+| **Part 6** | Publish, versioning and integration | 🔴 **Not Started** | No workflow serialization, versioning store, or site handoff triggers implemented. |
 
 ---
 
@@ -50,12 +50,12 @@ The project runtime and build tooling are installed and operational:
 
 - `src/features/builder/` — Feature active:
   - `components/BuilderLayout.jsx` — Master layout with Light/Dark theme and status bar.
-  - `components/BuilderToolbar.jsx` — Toolbar with theme switcher, site dropdown, zoom/fit-view, and action buttons.
-  - `components/ModulePalette.jsx` — 13 Core Modules + 20 Operational Steps with drag-and-drop & quick-add.
-  - `components/WorkflowCanvas.jsx` — Interactive `@xyflow/react` canvas with smoothstep routing, grid, and minimap.
-  - `components/InspectorPanel.jsx` — Node settings form, live inline validation, and clickable issue summary.
-  - `nodes/WorkflowNode.jsx` — Custom node with typed handles, theme adaptation, and validation error badges.
-  - `store/useWorkflowStore.js` — Zustand store with isolated drafts per facility, history, and theme state.
+  - `components/BuilderToolbar.jsx` — Toolbar with Preview toggle, site switcher, zoom/fit-view, and action buttons.
+  - `components/ModulePalette.jsx` — 13 Core Modules + 20 Operational Steps with drag-and-drop, quick-add, and preview-mode locking banner.
+  - `components/WorkflowCanvas.jsx` — `@xyflow/react` canvas with smoothstep routing, grid, minimap, preview banner, and read-only props.
+  - `components/InspectorPanel.jsx` — Node settings form, read-only preview inspection, live validation health badges, and clickable issue navigation.
+  - `nodes/WorkflowNode.jsx` — Custom node with typed handles, theme adaptation, validation badges, and read-only preview handles.
+  - `store/useWorkflowStore.js` — Zustand store with `isPreviewMode` state, multi-layer mutation guards, isolated drafts per facility, history, and theme state.
   - `registry/siteModules.js` — All 33 approved modules with typed settings schemas.
   - `validation/validateWorkflow.js` — Graph topology and settings validation engine.
   - `docs/` — Tracking documentation suite.
@@ -69,4 +69,4 @@ The project runtime and build tooling are installed and operational:
 1. **Routing Integration (`src/app`):** Pending verification whether the Builder will be mounted at route `/builder` or rendered as the root view in `src/App.jsx`.
 2. **Persistence Layer:** Pending verification whether workflow graphs should persist to `localStorage` or memory-only mock stores during client-side development.
 3. **Site Data Contracts:** Schema models for Central Stores, Service Centre, and Distribution are conceptual in `PROJECT_CONTEXT.md` and need formal TypeScript/JSDoc type contracts in `src/data/` or `src/features/builder/types.js`.
-4. **Time Machine Seed Data:** Pending verification of default timeline scenario events to seed initial playback.
+4. **Time Machine Seed Data:** Default timeline scenario events to seed initial playback scheduled for Part 5.

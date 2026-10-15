@@ -103,3 +103,15 @@ Key architectural decisions governing the development of the OpsHub Visual Workf
   4. **Contract Matching:** Source handle output types must match target handle input types.
   5. **Cycle Detection:** Cycles are flagged as errors unless explicitly flagged as a configured `RetryLoopNode`.
 - **Status:** Accepted.
+
+---
+
+## ADR-007: Multi-Layer Read-Only Enforcement for Preview Mode
+
+- **Context:** Part 4 requires previewing the current site's workflow in a clean read-only mode, strictly preventing accidental movement, deletion, connection changes, or configuration edits while previewing.
+- **Decision:** Implement a three-layer defense-in-depth architecture:
+  1. **State Store Layer (`useWorkflowStore.js`):** All mutating actions (`addNode`, `deleteNode`, `deleteEdge`, `updateNodeConfig`, `updateNodeLabel`, `clearGraph`, `undo`, `redo`, `setWorkflowName`) immediately no-op if `isPreviewMode` is active. `onNodesChange` and `onEdgesChange` filter changes to allow only selection/dimension updates, strictly discarding position mutations and deletions.
+  2. **Canvas Engine Layer (`WorkflowCanvas.jsx` & `WorkflowNode.jsx`):** `<ReactFlow>` is configured with `nodesDraggable={!isPreviewMode}`, `nodesConnectable={!isPreviewMode}`, and `deleteKeyCode={isPreviewMode ? null : ['Backspace', 'Delete']}`. Handles set `isConnectable={!isPreviewMode}` with non-interactive styling, and node delete buttons are omitted.
+  3. **UI Component Layer (`InspectorPanel.jsx`, `ModulePalette.jsx`, `BuilderToolbar.jsx`):** Form controls render as formatted read-only displays instead of editable `<input>` controls. Module cards disable HTML5 drag and disable `+` quick-add buttons. Toolbar editing controls (Undo, Redo, Clear, Rename, Save, Publish) are visibly disabled with descriptive tooltips.
+- **Rationale:** Guarantees that even if browser events or keyboard shortcuts fire, neither state nor layout can be inadvertently altered.
+- **Status:** Accepted.
