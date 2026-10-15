@@ -7,12 +7,15 @@ import AssignmentTable from './components/AssignmentTable'
 import NewAssignmentModal from './components/NewAssignmentModal'
 import AssignmentDetailsModal from './components/AssignmentDetailsModal'
 import { INITIAL_ASSIGNMENTS } from './data/distributionMockData'
+import ThemeProvider from './context/ThemeProvider'
+import { useTheme } from './context/useTheme'
 
 function getCurrentTimeString() {
   return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
-export default function DistributionDashboard() {
+function DistributionDashboardContent() {
+  const { isDark } = useTheme()
   const [assignments, setAssignments] = useState(INITIAL_ASSIGNMENTS)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
@@ -67,10 +70,20 @@ export default function DistributionDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+    <div
+      className={`min-h-screen antialiased transition-colors duration-200 ${
+        isDark ? 'bg-[#151725] text-[#F2F3FA]' : 'bg-[#F5F7FC] text-[#17213A]'
+      }`}
+    >
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-900 px-4 py-3 text-xs font-medium text-white shadow-xl animate-bounce-subtle">
+        <div
+          className={`fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-xl border px-4 py-3 text-xs font-medium shadow-xl animate-bounce-subtle ${
+            isDark
+              ? 'border-[#2E334D] bg-[#222538] text-[#F2F3FA]'
+              : 'border-slate-200 bg-slate-900 text-white'
+          }`}
+        >
           <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
           <span>{toastMessage}</span>
         </div>
@@ -126,5 +139,13 @@ export default function DistributionDashboard() {
         onClose={() => setSelectedAssignment(null)}
       />
     </div>
+  )
+}
+
+export default function DistributionDashboard() {
+  return (
+    <ThemeProvider>
+      <DistributionDashboardContent />
+    </ThemeProvider>
   )
 }

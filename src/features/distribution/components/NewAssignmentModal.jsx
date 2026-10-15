@@ -5,8 +5,10 @@ import {
   SOURCE_OPTIONS,
   UNIT_OPTIONS,
 } from '../data/distributionMockData'
+import { useTheme } from '../context/useTheme'
 
 export default function NewAssignmentModal({ isOpen, onClose, onAddAssignment }) {
+  const { isDark } = useTheme()
   const [formData, setFormData] = useState({
     material: '',
     quantity: '',
@@ -98,29 +100,49 @@ export default function NewAssignmentModal({ isOpen, onClose, onAddAssignment })
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-fadeIn"
       role="dialog"
       aria-modal="true"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl transition-all"
+        className={`relative w-full max-w-lg rounded-2xl border p-6 shadow-xl transition-all ${
+          isDark
+            ? 'border-[#2E334D] bg-[#222538] text-[#F2F3FA]'
+            : 'border-slate-200 bg-white text-[#17213A]'
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+        <div
+          className={`flex items-start justify-between border-b pb-4 transition-colors ${
+            isDark ? 'border-[#2E334D]' : 'border-slate-100'
+          }`}
+        >
           <div>
-            <h2 className="text-base font-semibold text-slate-900">
+            <h2
+              className={`text-base font-semibold transition-colors ${
+                isDark ? 'text-[#F2F3FA]' : 'text-slate-900'
+              }`}
+            >
               Create Material Assignment
             </h2>
-            <p className="mt-0.5 text-xs text-slate-500">
+            <p
+              className={`mt-0.5 text-xs transition-colors ${
+                isDark ? 'text-[#A6ADC4]' : 'text-slate-500'
+              }`}
+            >
               Assign materials from inventory depots to operational destinations.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+            className={`rounded-lg p-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4BE8] ${
+              isDark
+                ? 'text-[#A6ADC4] hover:bg-[#1B1E2E] hover:text-[#F2F3FA]'
+                : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600'
+            }`}
           >
             <X className="h-5 w-5" />
           </button>
@@ -128,8 +150,14 @@ export default function NewAssignmentModal({ isOpen, onClose, onAddAssignment })
 
         {/* Success Feedback */}
         {isSuccess && (
-          <div className="mt-4 flex items-center gap-2 rounded-lg bg-emerald-50 p-3 text-xs font-medium text-emerald-800 border border-emerald-200">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+          <div
+            className={`mt-4 flex items-center gap-2 rounded-lg p-3 text-xs font-medium border transition-colors ${
+              isDark
+                ? 'bg-emerald-950/50 text-emerald-300 border-emerald-800/60'
+                : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+            }`}
+          >
+            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
             <span>Assignment created successfully! Updating manifest records...</span>
           </div>
         )}
@@ -138,7 +166,11 @@ export default function NewAssignmentModal({ isOpen, onClose, onAddAssignment })
         <form onSubmit={handleSubmit} className="mt-4 space-y-3.5 text-xs">
           {/* Material Name */}
           <div>
-            <label className="block font-medium text-slate-700">
+            <label
+              className={`block font-medium transition-colors ${
+                isDark ? 'text-[#F2F3FA]' : 'text-slate-700'
+              }`}
+            >
               Material / Item Name <span className="text-rose-500">*</span>
             </label>
             <input
@@ -147,14 +179,16 @@ export default function NewAssignmentModal({ isOpen, onClose, onAddAssignment })
               value={formData.material}
               onChange={handleChange}
               placeholder="e.g. Servo Motor Assemblies (3kW)"
-              className={`mt-1 w-full rounded-lg border px-3 py-2 text-xs text-slate-900 shadow-sm focus:outline-none focus:ring-1 transition ${
+              className={`mt-1 w-full rounded-lg border px-3 py-2 text-xs shadow-sm focus:outline-none focus:ring-1 transition-colors duration-200 ${
                 errors.material
-                  ? 'border-rose-300 bg-rose-50/30 focus:border-rose-500 focus:ring-rose-500'
-                  : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500'
+                  ? 'border-rose-400 bg-rose-50/10 focus:border-rose-500 focus:ring-rose-500'
+                  : isDark
+                  ? 'border-[#2E334D] bg-[#1B1E2E] text-[#F2F3FA] placeholder:text-[#A6ADC4]/60 focus:border-[#B9ADFF] focus:ring-[#B9ADFF]'
+                  : 'border-slate-200 bg-white text-[#17213A] placeholder:text-slate-400 focus:border-[#5B4BE8] focus:ring-[#5B4BE8]'
               }`}
             />
             {errors.material && (
-              <p className="mt-1 flex items-center gap-1 text-[11px] text-rose-600">
+              <p className="mt-1 flex items-center gap-1 text-[11px] text-rose-500">
                 <AlertCircle className="h-3 w-3" />
                 {errors.material}
               </p>
@@ -164,7 +198,11 @@ export default function NewAssignmentModal({ isOpen, onClose, onAddAssignment })
           {/* Quantity & Unit */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-medium text-slate-700">
+              <label
+                className={`block font-medium transition-colors ${
+                  isDark ? 'text-[#F2F3FA]' : 'text-slate-700'
+                }`}
+              >
                 Quantity <span className="text-rose-500">*</span>
               </label>
               <input
@@ -175,14 +213,16 @@ export default function NewAssignmentModal({ isOpen, onClose, onAddAssignment })
                 value={formData.quantity}
                 onChange={handleChange}
                 placeholder="e.g. 50"
-                className={`mt-1 w-full rounded-lg border px-3 py-2 text-xs text-slate-900 shadow-sm focus:outline-none focus:ring-1 transition ${
+                className={`mt-1 w-full rounded-lg border px-3 py-2 text-xs shadow-sm focus:outline-none focus:ring-1 transition-colors duration-200 ${
                   errors.quantity
-                    ? 'border-rose-300 bg-rose-50/30 focus:border-rose-500 focus:ring-rose-500'
-                    : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500'
+                    ? 'border-rose-400 bg-rose-50/10 focus:border-rose-500 focus:ring-rose-500'
+                    : isDark
+                    ? 'border-[#2E334D] bg-[#1B1E2E] text-[#F2F3FA] placeholder:text-[#A6ADC4]/60 focus:border-[#B9ADFF] focus:ring-[#B9ADFF]'
+                    : 'border-slate-200 bg-white text-[#17213A] placeholder:text-slate-400 focus:border-[#5B4BE8] focus:ring-[#5B4BE8]'
                 }`}
               />
               {errors.quantity && (
-                <p className="mt-1 flex items-center gap-1 text-[11px] text-rose-600">
+                <p className="mt-1 flex items-center gap-1 text-[11px] text-rose-500">
                   <AlertCircle className="h-3 w-3" />
                   {errors.quantity}
                 </p>
@@ -190,15 +230,25 @@ export default function NewAssignmentModal({ isOpen, onClose, onAddAssignment })
             </div>
 
             <div>
-              <label className="block font-medium text-slate-700">Unit of Measure</label>
+              <label
+                className={`block font-medium transition-colors ${
+                  isDark ? 'text-[#F2F3FA]' : 'text-slate-700'
+                }`}
+              >
+                Unit of Measure
+              </label>
               <select
                 name="unit"
                 value={formData.unit}
                 onChange={handleChange}
-                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className={`mt-1 w-full rounded-lg border px-3 py-2 text-xs shadow-sm transition-colors duration-200 focus:outline-none focus:ring-1 ${
+                  isDark
+                    ? 'border-[#2E334D] bg-[#1B1E2E] text-[#F2F3FA] focus:border-[#B9ADFF] focus:ring-[#B9ADFF]'
+                    : 'border-slate-200 bg-white text-[#17213A] focus:border-[#5B4BE8] focus:ring-[#5B4BE8]'
+                }`}
               >
                 {UNIT_OPTIONS.map((unit) => (
-                  <option key={unit} value={unit}>
+                  <option key={unit} value={unit} className={isDark ? 'bg-[#1B1E2E]' : 'bg-white'}>
                     {unit}
                   </option>
                 ))}
@@ -209,17 +259,25 @@ export default function NewAssignmentModal({ isOpen, onClose, onAddAssignment })
           {/* Source & Destination */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label className="block font-medium text-slate-700">
+              <label
+                className={`block font-medium transition-colors ${
+                  isDark ? 'text-[#F2F3FA]' : 'text-slate-700'
+                }`}
+              >
                 Source Site <span className="text-rose-500">*</span>
               </label>
               <select
                 name="source"
                 value={formData.source}
                 onChange={handleChange}
-                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className={`mt-1 w-full rounded-lg border px-3 py-2 text-xs shadow-sm transition-colors duration-200 focus:outline-none focus:ring-1 ${
+                  isDark
+                    ? 'border-[#2E334D] bg-[#1B1E2E] text-[#F2F3FA] focus:border-[#B9ADFF] focus:ring-[#B9ADFF]'
+                    : 'border-slate-200 bg-white text-[#17213A] focus:border-[#5B4BE8] focus:ring-[#5B4BE8]'
+                }`}
               >
                 {SOURCE_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>
+                  <option key={opt} value={opt} className={isDark ? 'bg-[#1B1E2E]' : 'bg-white'}>
                     {opt}
                   </option>
                 ))}
@@ -227,17 +285,25 @@ export default function NewAssignmentModal({ isOpen, onClose, onAddAssignment })
             </div>
 
             <div>
-              <label className="block font-medium text-slate-700">
+              <label
+                className={`block font-medium transition-colors ${
+                  isDark ? 'text-[#F2F3FA]' : 'text-slate-700'
+                }`}
+              >
                 Destination Hub <span className="text-rose-500">*</span>
               </label>
               <select
                 name="destination"
                 value={formData.destination}
                 onChange={handleChange}
-                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className={`mt-1 w-full rounded-lg border px-3 py-2 text-xs shadow-sm transition-colors duration-200 focus:outline-none focus:ring-1 ${
+                  isDark
+                    ? 'border-[#2E334D] bg-[#1B1E2E] text-[#F2F3FA] focus:border-[#B9ADFF] focus:ring-[#B9ADFF]'
+                    : 'border-slate-200 bg-white text-[#17213A] focus:border-[#5B4BE8] focus:ring-[#5B4BE8]'
+                }`}
               >
                 {DESTINATION_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>
+                  <option key={opt} value={opt} className={isDark ? 'bg-[#1B1E2E]' : 'bg-white'}>
                     {opt}
                   </option>
                 ))}
@@ -248,7 +314,11 @@ export default function NewAssignmentModal({ isOpen, onClose, onAddAssignment })
           {/* Date & Priority */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-medium text-slate-700">
+              <label
+                className={`block font-medium transition-colors ${
+                  isDark ? 'text-[#F2F3FA]' : 'text-slate-700'
+                }`}
+              >
                 Assignment Date <span className="text-rose-500">*</span>
               </label>
               <input
@@ -256,28 +326,46 @@ export default function NewAssignmentModal({ isOpen, onClose, onAddAssignment })
                 name="assignedDate"
                 value={formData.assignedDate}
                 onChange={handleChange}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className={`mt-1 w-full rounded-lg border px-3 py-2 text-xs shadow-sm transition-colors duration-200 focus:outline-none focus:ring-1 ${
+                  isDark
+                    ? 'border-[#2E334D] bg-[#1B1E2E] text-[#F2F3FA] focus:border-[#B9ADFF] focus:ring-[#B9ADFF]'
+                    : 'border-slate-200 bg-white text-[#17213A] focus:border-[#5B4BE8] focus:ring-[#5B4BE8]'
+                }`}
               />
             </div>
 
             <div>
-              <label className="block font-medium text-slate-700">Priority</label>
+              <label
+                className={`block font-medium transition-colors ${
+                  isDark ? 'text-[#F2F3FA]' : 'text-slate-700'
+                }`}
+              >
+                Priority
+              </label>
               <select
                 name="priority"
                 value={formData.priority}
                 onChange={handleChange}
-                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className={`mt-1 w-full rounded-lg border px-3 py-2 text-xs shadow-sm transition-colors duration-200 focus:outline-none focus:ring-1 ${
+                  isDark
+                    ? 'border-[#2E334D] bg-[#1B1E2E] text-[#F2F3FA] focus:border-[#B9ADFF] focus:ring-[#B9ADFF]'
+                    : 'border-slate-200 bg-white text-[#17213A] focus:border-[#5B4BE8] focus:ring-[#5B4BE8]'
+                }`}
               >
-                <option value="Normal">Normal</option>
-                <option value="High">High</option>
-                <option value="Urgent">Urgent</option>
+                <option value="Normal" className={isDark ? 'bg-[#1B1E2E]' : 'bg-white'}>Normal</option>
+                <option value="High" className={isDark ? 'bg-[#1B1E2E]' : 'bg-white'}>High</option>
+                <option value="Urgent" className={isDark ? 'bg-[#1B1E2E]' : 'bg-white'}>Urgent</option>
               </select>
             </div>
           </div>
 
           {/* Operational Notes */}
           <div>
-            <label className="block font-medium text-slate-700">
+            <label
+              className={`block font-medium transition-colors ${
+                isDark ? 'text-[#A6ADC4]' : 'text-slate-700'
+              }`}
+            >
               Operational Notes (Optional)
             </label>
             <textarea
@@ -286,24 +374,36 @@ export default function NewAssignmentModal({ isOpen, onClose, onAddAssignment })
               value={formData.notes}
               onChange={handleChange}
               placeholder="Add handling requirements, batch numbers, or special instructions..."
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className={`mt-1 w-full rounded-lg border px-3 py-2 text-xs shadow-sm transition-colors duration-200 focus:outline-none focus:ring-1 ${
+                isDark
+                  ? 'border-[#2E334D] bg-[#1B1E2E] text-[#F2F3FA] placeholder:text-[#A6ADC4]/60 focus:border-[#B9ADFF] focus:ring-[#B9ADFF]'
+                  : 'border-slate-200 bg-white text-[#17213A] placeholder:text-slate-400 focus:border-[#5B4BE8] focus:ring-[#5B4BE8]'
+              }`}
             />
           </div>
 
           {/* Footer Actions */}
-          <div className="mt-5 flex items-center justify-end gap-2 border-t border-slate-100 pt-4">
+          <div
+            className={`mt-5 flex items-center justify-end gap-2 border-t pt-4 transition-colors ${
+              isDark ? 'border-[#2E334D]' : 'border-slate-100'
+            }`}
+          >
             <button
               type="button"
               onClick={onClose}
               disabled={isSuccess}
-              className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
+              className={`rounded-lg border px-4 py-2 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4BE8] ${
+                isDark
+                  ? 'border-[#2E334D] text-[#A6ADC4] hover:bg-[#1B1E2E] hover:text-[#F2F3FA]'
+                  : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSuccess}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 transition disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#5B4BE8] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#4D3DC9] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4BE8] focus-visible:ring-offset-2 transition-colors duration-150 disabled:opacity-50"
             >
               <Plus className="h-4 w-4" />
               <span>Create Assignment</span>
