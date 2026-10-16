@@ -1,0 +1,92 @@
+/* OpsHub Central Stores Feature Stylesheet
+   Follows official OpsHub design tokens with resilient CSS variable fallbacks.
+   Supports both light and dark modes cleanly scoped to .central-stores-scope.
+*/
+
+.central-stores-scope {
+  /* Brand Tokens */
+  --cs-purple-primary: var(--opshub-primary, #6554C0);
+  --cs-purple-deep: var(--opshub-deep-purple, #4F46A5);
+  --cs-accent-blue: var(--opshub-accent-blue, #3B82F6);
+  --cs-teal: var(--opshub-teal, #0D9488);
+  --cs-success: var(--opshub-success, #16A34A);
+  --cs-warning: var(--opshub-warning, #D97706);
+  --cs-error: var(--opshub-error, #DC2626);
+
+  /* Light Theme Tokens (default) */
+  --cs-bg-app: var(--opshub-bg-app, #F5F6FA);
+  --cs-bg-surface: var(--opshub-bg-surface, #FFFFFF);
+  --cs-bg-card: var(--opshub-bg-card, #FFFFFF);
+  --cs-bg-elevated: var(--opshub-bg-elevated, #F8FAFC);
+  --cs-text-primary: var(--opshub-text-primary, #20243A);
+  --cs-text-secondary: var(--opshub-text-secondary, #475467);
+  --cs-text-muted: var(--opshub-text-muted, #667085);
+  --cs-border: var(--opshub-border, #E4E7EC);
+  --cs-border-subtle: var(--opshub-border-subtle, #F1F3F7);
+  --cs-active-nav-bg: var(--opshub-active-nav-bg, #EEEBFF);
+  --cs-active-nav-text: var(--opshub-active-nav-text, #4F46A5);
+  --cs-input-bg: var(--opshub-input-bg, #FFFFFF);
+  --cs-table-header-bg: var(--opshub-table-header-bg, #F9FAFB);
+  --cs-table-row-hover: var(--opshub-table-row-hover, #F8FAFC);
+
+  /* Shadows */
+  --cs-shadow-sm: 0 1px 2px 0 rgba(16, 24, 40, 0.05);
+  --cs-shadow-md: 0 4px 6px -1px rgba(16, 24, 40, 0.08), 0 2px 4px -2px rgba(16, 24, 40, 0.04);
+  --cs-shadow-lg: 0 10px 15px -3px rgba(16, 24, 40, 0.08), 0 4px 6px -4px rgba(16, 24, 40, 0.03);
+
+  background-color: var(--cs-bg-app);
+  color: var(--cs-text-primary);
+  min-height: 100%;
+  font-family: inherit;
+}
+
+/* Dark mode overrides (matches parent .dark or [data-theme='dark'] or inner dark toggle) */
+:is(.dark, [data-theme='dark']) .central-stores-scope,
+.central-stores-scope.dark-mode {
+  --cs-bg-app: var(--opshub-bg-app, #0D1020);
+  --cs-bg-surface: var(--opshub-bg-surface, #111525);
+  --cs-bg-card: var(--opshub-bg-card, #191E30);
+  --cs-bg-elevated: var(--opshub-bg-elevated, #22283C);
+  --cs-text-primary: var(--opshub-text-primary, #F3F4F6);
+  --cs-text-secondary: var(--opshub-text-secondary, #C1C7D5);
+  --cs-text-muted: var(--opshub-text-muted, #A1A8BC);
+  --cs-border: var(--opshub-border, #30374C);
+  --cs-border-subtle: var(--opshub-border-subtle, #1F263B);
+  --cs-active-nav-bg: var(--opshub-active-nav-bg, #292444);
+  --cs-active-nav-text: var(--opshub-primary-accent, #A78BFA);
+  --cs-input-bg: var(--opshub-input-bg, #15192A);
+  --cs-table-header-bg: var(--opshub-table-header-bg, #151A2C);
+  --cs-table-row-hover: var(--opshub-table-row-hover, #1F253C);
+
+  --cs-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --cs-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --cs-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes modalBackdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalContent {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-modal-backdrop {
+  animation: modalBackdrop 0.15s ease-out forwards;
+}
+
+.animate-modal-content {
+  animation: modalContent 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
