@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import {
   Warehouse,
   RotateCcw,
@@ -6,6 +7,7 @@ import {
   Moon,
   Building2,
   Boxes,
+  Workflow,
 } from 'lucide-react'
 import { useCentralStoresStore } from './store/useCentralStoresStore'
 import { KpiCardsGrid } from './components/KpiCardsGrid'
@@ -149,6 +151,21 @@ export function CentralStoresDashboard({
                   )}
                 </button>
               )}
+
+              {/* Edit SOP in Builder */}
+              <Link
+                to="/builder?site=central-stores"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all hover:opacity-90 shadow-sm"
+                style={{
+                  backgroundColor: 'rgba(101, 84, 192, 0.12)',
+                  border: '1px solid rgba(101, 84, 192, 0.3)',
+                  color: 'var(--cs-purple-primary, #6554C0)',
+                }}
+                title="Open and customize Central Stores workflow in Builder"
+              >
+                <Workflow className="w-3.5 h-3.5" />
+                <span>Edit SOP in Builder</span>
+              </Link>
 
               {/* Reset to Mock Data */}
               <button

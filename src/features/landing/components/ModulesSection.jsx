@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   Boxes,
   Layers,
   Truck,
   Wrench,
+  ArrowRight,
 } from 'lucide-react'
 import { useLandingTheme } from '../context/useLandingTheme'
 
@@ -334,6 +336,15 @@ export default function ModulesSection() {
                       </span>
                     ))}
                   </div>
+
+                  {/* Direct Workspace Launcher */}
+                  <Link
+                    to={`/${mod.id}`}
+                    className="w-full mt-3 py-2 px-3 rounded-lg text-xs font-mono font-semibold flex items-center justify-center gap-1.5 bg-[#2997FF]/15 hover:bg-[#2997FF]/25 text-[#2997FF] dark:text-[#52D7FF] border border-[#2997FF]/30 transition-colors"
+                  >
+                    <span>Launch {mod.title} Workspace</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
               </div>
             )

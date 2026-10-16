@@ -11,7 +11,7 @@ import { useLandingTheme } from '../context/useLandingTheme'
 import blueprintHeroImg from '../assets/blueprint-hero-facility.jpg'
 import cinematicFacilityImg from '../assets/cinematic-industrial-facility.jpg'
 
-export default function HeroSection() {
+export default function HeroSection({ onOpenWorkspaceModal }) {
   const { isDark } = useLandingTheme()
   const [activeCallout, setActiveCallout] = useState('distribution')
   const [viewMode, setViewMode] = useState('blueprint') // 'blueprint' | 'cinematic' | 'hybrid'
@@ -64,15 +64,15 @@ export default function HeroSection() {
   }
 
   return (
-    <section className="relative min-h-[92vh] pt-28 sm:pt-36 pb-20 flex items-center overflow-hidden">
+    <section className="relative min-h-[85vh] pt-6 sm:pt-10 pb-16 flex items-center overflow-hidden">
       {/* Decorative Blueprint Corner Annotation Marks */}
-      <div className="absolute top-24 left-6 sm:left-12 hidden lg:flex flex-col text-[10px] font-mono text-[#8CA8BC]/60 select-none space-y-1">
+      <div className="absolute top-4 left-6 sm:left-12 hidden lg:flex flex-col text-[10px] font-mono text-[#8CA8BC]/60 select-none space-y-1">
         <span>PROJECT // OPSHUB-CORE</span>
         <span>SYS.ARCH // SPEC-2026.4</span>
         <span>SCALE // 1:500 METRIC</span>
       </div>
 
-      <div className="absolute top-24 right-6 sm:right-12 hidden lg:flex flex-col text-right text-[10px] font-mono text-[#8CA8BC]/60 select-none space-y-1">
+      <div className="absolute top-4 right-6 sm:right-12 hidden lg:flex flex-col text-right text-[10px] font-mono text-[#8CA8BC]/60 select-none space-y-1">
         <span>STATUS // TELEMETRY ACTIVE</span>
         <span>SECURITY // ENCRYPTED MESH</span>
         <span>LATENCY // &lt;14MS DETERMINISTIC</span>
@@ -125,13 +125,24 @@ export default function HeroSection() {
 
             {/* Action CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
-              <Link
-                to="/signup?plan=professional"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 text-xs sm:text-sm font-mono font-semibold uppercase tracking-wider text-white bg-[#2997FF] hover:bg-[#1f84e3] rounded-xl shadow-[0_0_25px_rgba(41,151,255,0.4)] hover:shadow-[0_0_35px_rgba(82,215,255,0.6)] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#52D7FF]"
-              >
-                <span>Start 7-Day Free Trial</span>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+              {onOpenWorkspaceModal ? (
+                <button
+                  type="button"
+                  onClick={onOpenWorkspaceModal}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 text-xs sm:text-sm font-mono font-semibold uppercase tracking-wider text-white bg-[#2997FF] hover:bg-[#1f84e3] rounded-xl shadow-[0_0_25px_rgba(41,151,255,0.4)] hover:shadow-[0_0_35px_rgba(82,215,255,0.6)] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#52D7FF]"
+                >
+                  <span>Get Started — Choose Workspace</span>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              ) : (
+                <Link
+                  to="/workspaces"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 text-xs sm:text-sm font-mono font-semibold uppercase tracking-wider text-white bg-[#2997FF] hover:bg-[#1f84e3] rounded-xl shadow-[0_0_25px_rgba(41,151,255,0.4)] hover:shadow-[0_0_35px_rgba(82,215,255,0.6)] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#52D7FF]"
+                >
+                  <span>Get Started — Choose Workspace</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              )}
 
               <a
                 href="#modules"
@@ -392,10 +403,23 @@ export default function HeroSection() {
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-3 self-end sm:self-auto shrink-0 font-mono text-[10px] text-[#52D7FF]">
-                            <span className="px-2 py-0.5 rounded bg-[#153D57]/60 border border-[#2997FF]/30">
+                          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 font-mono text-[10px] text-[#52D7FF]">
+                            <span className="hidden sm:inline-block px-2 py-0.5 rounded bg-[#153D57]/60 border border-[#2997FF]/30">
                               {sel.metric}
                             </span>
+                            <Link
+                              to={
+                                sel.id === 'stores'
+                                  ? '/central-stores'
+                                  : sel.id === 'service'
+                                  ? '/service-centre'
+                                  : '/distribution'
+                              }
+                              className="px-2.5 py-1 rounded bg-[#2997FF] hover:bg-[#1f84e3] text-white font-semibold flex items-center gap-1 transition-colors"
+                            >
+                              <span>Enter Workspace</span>
+                              <ArrowRight className="w-3 h-3" />
+                            </Link>
                           </div>
                         </div>
                       )

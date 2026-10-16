@@ -4,7 +4,7 @@ import { ArrowRight, Compass } from 'lucide-react'
 import { useLandingTheme } from '../context/useLandingTheme'
 import panoramaBg from '../assets/blueprint-panorama-connected-sites.jpg'
 
-export default function CTASection() {
+export default function CTASection({ onOpenWorkspaceModal }) {
   const { isDark } = useLandingTheme()
   const [inquirySubmitted, setInquirySubmitted] = useState(false)
   const [email, setEmail] = useState('')
@@ -86,23 +86,34 @@ export default function CTASection() {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-              <Link
-                to="/signup?plan=professional"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 text-xs sm:text-sm font-mono font-semibold uppercase tracking-wider text-white bg-[#2997FF] hover:bg-[#1f84e3] rounded-xl shadow-[0_0_25px_rgba(41,151,255,0.4)] hover:shadow-[0_0_35px_rgba(82,215,255,0.6)] transition-all duration-200"
-              >
-                <span>Start 7-Day Free Trial</span>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+              {onOpenWorkspaceModal ? (
+                <button
+                  type="button"
+                  onClick={onOpenWorkspaceModal}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 text-xs sm:text-sm font-mono font-semibold uppercase tracking-wider text-white bg-[#2997FF] hover:bg-[#1f84e3] rounded-xl shadow-[0_0_25px_rgba(41,151,255,0.4)] hover:shadow-[0_0_35px_rgba(82,215,255,0.6)] transition-all duration-200"
+                >
+                  <span>Get Started — Choose Workspace</span>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              ) : (
+                <Link
+                  to="/workspaces"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 text-xs sm:text-sm font-mono font-semibold uppercase tracking-wider text-white bg-[#2997FF] hover:bg-[#1f84e3] rounded-xl shadow-[0_0_25px_rgba(41,151,255,0.4)] hover:shadow-[0_0_35px_rgba(82,215,255,0.6)] transition-all duration-200"
+                >
+                  <span>Get Started — Choose Workspace</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              )}
 
               <Link
-                to="/distribution"
+                to="/builder"
                 className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 text-xs sm:text-sm font-mono font-semibold uppercase tracking-wider rounded-xl border transition-all duration-200 ${
                   isDark
                     ? 'border-[#153D57] bg-[#071B2B] text-[#D9EAF5] hover:border-[#52D7FF]'
                     : 'border-slate-300 bg-white text-[#102536] hover:border-[#2997FF]'
                 }`}
               >
-                <span>Launch Distribution Workspace</span>
+                <span>Launch Workflow Builder</span>
               </Link>
             </div>
 

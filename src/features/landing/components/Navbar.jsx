@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Layers,
@@ -10,18 +10,9 @@ import {
 } from 'lucide-react'
 import { useLandingTheme } from '../context/useLandingTheme'
 
-export default function Navbar() {
+export default function Navbar({ onOpenWorkspaceModal }) {
   const { isDark, toggleTheme } = useLandingTheme()
-  const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20)
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   const navLinks = [
     { name: 'Product', href: '#modules' },
@@ -43,12 +34,10 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? isDark
-            ? 'bg-[#071B2B]/90 backdrop-blur-md border-b border-[#153D57] shadow-lg shadow-[#071B2B]/40'
-            : 'bg-[#F4F8FB]/90 backdrop-blur-md border-b border-[#D9EAF5] shadow-sm'
-          : 'bg-transparent border-b border-transparent'
+      className={`relative z-20 w-full transition-all duration-300 rounded-2xl mb-4 border ${
+        isDark
+          ? 'bg-[#071B2B]/90 backdrop-blur-md border-[#153D57] shadow-lg shadow-[#071B2B]/40'
+          : 'bg-[#F4F8FB]/90 backdrop-blur-md border-[#D9EAF5] shadow-sm'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -129,24 +118,35 @@ export default function Navbar() {
 
             {/* Sign In Link to /login */}
             <Link
-              to="/login"
+              to="/builder"
               className={`px-3 py-1.5 text-xs font-mono font-medium rounded-lg border transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-[#2997FF] ${
                 isDark
                   ? 'border-[#153D57] text-[#8CA8BC] hover:text-white hover:border-[#52D7FF]/60 hover:bg-[#0B263A]'
                   : 'border-slate-200 text-slate-700 hover:text-[#102536] hover:border-[#2997FF] hover:bg-white'
               }`}
             >
-              Sign In
+              Workflow Builder
             </Link>
 
-            {/* Primary Get Started CTA -> /signup */}
-            <Link
-              to="/signup"
-              className="relative inline-flex items-center gap-1.5 px-4 py-2 text-xs font-mono font-semibold uppercase tracking-wider text-white bg-[#2997FF] hover:bg-[#1f84e3] rounded-lg shadow-[0_0_20px_rgba(41,151,255,0.35)] hover:shadow-[0_0_25px_rgba(82,215,255,0.5)] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#52D7FF]"
-            >
-              <span>Get Started</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
+            {/* Primary Get Started CTA -> opens Workspace Selector */}
+            {onOpenWorkspaceModal ? (
+              <button
+                type="button"
+                onClick={onOpenWorkspaceModal}
+                className="relative inline-flex items-center gap-1.5 px-4 py-2 text-xs font-mono font-semibold uppercase tracking-wider text-white bg-[#2997FF] hover:bg-[#1f84e3] rounded-lg shadow-[0_0_20px_rgba(41,151,255,0.35)] hover:shadow-[0_0_25px_rgba(82,215,255,0.5)] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#52D7FF]"
+              >
+                <span>Get Started</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            ) : (
+              <Link
+                to="/workspaces"
+                className="relative inline-flex items-center gap-1.5 px-4 py-2 text-xs font-mono font-semibold uppercase tracking-wider text-white bg-[#2997FF] hover:bg-[#1f84e3] rounded-lg shadow-[0_0_20px_rgba(41,151,255,0.35)] hover:shadow-[0_0_25px_rgba(82,215,255,0.5)] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#52D7FF]"
+              >
+                <span>Get Started</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu & Theme Toggle */}
@@ -208,7 +208,7 @@ export default function Navbar() {
 
           <div className="pt-3 border-t border-slate-700/40 flex flex-col gap-2">
             <Link
-              to="/login"
+              to="/builder"
               onClick={() => setMobileMenuOpen(false)}
               className={`w-full py-2 text-xs font-mono font-medium rounded-lg border text-center transition-colors ${
                 isDark
@@ -216,17 +216,31 @@ export default function Navbar() {
                   : 'border-slate-200 text-slate-700 hover:text-[#102536]'
               }`}
             >
-              Sign In
+              Workflow Builder
             </Link>
 
-            <Link
-              to="/signup"
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 text-xs font-mono font-semibold uppercase tracking-wider text-white bg-[#2997FF] hover:bg-[#1f84e3] rounded-lg shadow-md transition-all text-center"
-            >
-              <span>Get Started</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
+            {onOpenWorkspaceModal ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false)
+                  onOpenWorkspaceModal()
+                }}
+                className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 text-xs font-mono font-semibold uppercase tracking-wider text-white bg-[#2997FF] hover:bg-[#1f84e3] rounded-lg shadow-md transition-all text-center"
+              >
+                <span>Get Started</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            ) : (
+              <Link
+                to="/workspaces"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 text-xs font-mono font-semibold uppercase tracking-wider text-white bg-[#2997FF] hover:bg-[#1f84e3] rounded-lg shadow-md transition-all text-center"
+              >
+                <span>Get Started</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            )}
           </div>
         </div>
       )}

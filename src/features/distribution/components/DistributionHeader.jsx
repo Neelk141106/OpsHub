@@ -1,4 +1,5 @@
-import { Moon, Plus, RefreshCw, Sun, Truck } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Moon, Plus, RefreshCw, Sun, Truck, Workflow } from 'lucide-react'
 import { useTheme } from '../context/useTheme'
 
 export default function DistributionHeader({ onNewAssignment, onRefresh, lastUpdated }) {
@@ -72,6 +73,20 @@ export default function DistributionHeader({ onNewAssignment, onRefresh, lastUpd
         >
           {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
+
+        {/* Edit SOP in Builder */}
+        <Link
+          to="/builder?site=distribution"
+          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold shadow-2xs transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4BE8] ${
+            isDark
+              ? 'border-purple-800/60 bg-purple-950/40 text-purple-300 hover:bg-purple-900/60'
+              : 'border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100'
+          }`}
+          title="Open and customize Distribution workflow in Builder"
+        >
+          <Workflow className="h-3.5 w-3.5" />
+          <span>Edit SOP in Builder</span>
+        </Link>
 
         {/* Refresh Feed Button */}
         <button

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   Activity,
   ArrowRight,
@@ -20,8 +21,8 @@ export default function USPSection() {
     {
       id: 'builder',
       title: 'Visual Workflow Builder',
-      badge: 'IN ACTIVE DEVELOPMENT',
-      badgeColor: 'border-[#2997FF]/50 text-[#52D7FF] bg-[#2997FF]/10',
+      badge: 'INTEGRATED & LIVE',
+      badgeColor: 'border-emerald-500/50 text-emerald-400 bg-emerald-500/10',
       icon: Network,
       tagline: 'Drag-and-Drop Node Graph Architecture atop @xyflow/react',
       description:
@@ -480,6 +481,18 @@ export default function USPSection() {
                 <span>ARCH: {activeCapability.techStack}</span>
                 <span className="text-[#52D7FF]">OPSHUB-SPEC // 2026</span>
               </div>
+
+              {activeCapability.id === 'builder' && (
+                <div className="mt-4 pt-3 border-t border-[#153D57]/40 flex justify-end">
+                  <Link
+                    to="/builder"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-mono font-semibold uppercase tracking-wider bg-[#2997FF] hover:bg-[#1f84e3] text-white shadow-md transition-all"
+                  >
+                    <span>Launch Workflow Builder Studio</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>

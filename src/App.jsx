@@ -13,6 +13,8 @@ import {
   Wrench,
   Truck,
   GitBranch,
+  Workflow,
+  Compass,
   Moon,
   Sun,
   Activity,
@@ -21,6 +23,9 @@ import {
 import { CentralStoresDashboard } from './features/central-stores';
 import { ServiceCentreDashboard } from './features/service-centre';
 import DistributionDashboard from './features/distribution';
+import { BuilderLayout } from './features/builder';
+import { LandingPage } from './features/landing';
+import WorkspaceSelectionView from './features/landing/components/WorkspaceSelectionView';
 
 function OpsHubLayout() {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -35,6 +40,13 @@ function OpsHubLayout() {
   }, [isDarkMode]);
 
   const navigation = [
+    {
+      label: 'Blueprint Overview',
+      path: '/',
+      icon: Compass,
+      accent: 'indigo',
+      end: true,
+    },
     {
       label: 'Central Stores',
       path: '/central-stores',
@@ -52,6 +64,12 @@ function OpsHubLayout() {
       path: '/distribution',
       icon: Truck,
       accent: 'purple',
+    },
+    {
+      label: 'Workflow Builder',
+      path: '/builder',
+      icon: Workflow,
+      accent: 'violet',
     },
   ];
 
@@ -90,16 +108,20 @@ function OpsHubLayout() {
             aria-label="Operational sites"
             className="order-3 flex w-full items-center gap-1 overflow-x-auto rounded-xl border border-[#E4E7EC] bg-[#F5F6FA] p-1 sm:order-2 sm:w-auto dark:border-[#30374C] dark:bg-[#191E30]"
           >
-            {navigation.map(({ label, path, icon: Icon }) => (
+            {navigation.map(({ label, path, icon: Icon, end }) => (
               <NavLink
                 key={path}
                 to={path}
-                className={({ isActive }) =>
-                  `flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition-colors sm:text-sm ${isActive
-                    ? 'bg-white text-[#4F46A5] shadow-sm ring-1 ring-[#E4E7EC] dark:bg-[#22283C] dark:text-[#C4B5FD] dark:ring-[#30374C]'
-                    : 'text-[#475467] hover:bg-white/70 hover:text-[#20243A] dark:text-[#C1C7D5] dark:hover:bg-[#22283C]'
-                  }`
-                }
+                end={end}
+                className={({ isActive }) => {
+                  const isCurrent =
+                    isActive || (path === '/' && location.pathname === '/landing');
+                  return `flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition-colors sm:text-sm ${
+                    isCurrent
+                      ? 'bg-white text-[#4F46A5] shadow-sm ring-1 ring-[#E4E7EC] dark:bg-[#22283C] dark:text-[#C4B5FD] dark:ring-[#30374C]'
+                      : 'text-[#475467] hover:bg-white/70 hover:text-[#20243A] dark:text-[#C1C7D5] dark:hover:bg-[#22283C]'
+                  }`;
+                }}
               >
                 <Icon size={16} />
                 {label}
@@ -138,8 +160,12 @@ function OpsHubLayout() {
             </span>
             <span className="text-[#98A2B3]">/</span>
             <span className="font-semibold text-[#20243A] dark:text-[#F3F4F6]">
-              {navigation.find((item) => item.path === location.pathname)?.label
-                || 'Operations'}
+              {location.pathname === '/' || location.pathname === '/landing'
+                ? 'Blueprint Overview'
+                : location.pathname === '/workspaces'
+                ? 'Workspace Selection'
+                : navigation.find((item) => item.path === location.pathname)?.label
+                  || 'Operations'}
             </span>
           </div>
 
@@ -154,7 +180,17 @@ function OpsHubLayout() {
         <Routes>
           <Route
             path="/"
-            element={<Navigate to="/central-stores" replace />}
+            element={<LandingPage />}
+          />
+
+          <Route
+            path="/landing"
+            element={<LandingPage />}
+          />
+
+          <Route
+            path="/workspaces"
+            element={<WorkspaceSelectionView isDark={isDarkMode} />}
           />
 
           <Route
@@ -177,8 +213,17 @@ function OpsHubLayout() {
           />
 
           <Route
+            path="/builder"
+            element={
+              <BuilderLayout
+                theme={isDarkMode ? 'dark' : 'light'}
+              />
+            }
+          />
+
+          <Route
             path="*"
-            element={<Navigate to="/central-stores" replace />}
+            element={<Navigate to="/" replace />}
           />
         </Routes>
       </main>
@@ -187,7 +232,7 @@ function OpsHubLayout() {
       <footer className="border-t border-[#E4E7EC] bg-white px-4 py-4 dark:border-[#30374C] dark:bg-[#111525] sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#667085] dark:text-[#A1A8BC]">
           <span>OpsHub · Genesis 2.0</span>
-          <span>Central Stores · Service Centre · Distribution</span>
+          <span>Blueprint Overview · Central Stores · Service Centre · Distribution · Workflow Builder</span>
         </div>
       </footer>
     </div>

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Wrench,
   Activity,
@@ -9,6 +10,7 @@ import {
   AlertCircle,
   Cpu,
   ArrowRight,
+  Workflow,
 } from 'lucide-react';
 import { Button } from '../../components/Button.jsx';
 import { StatCard } from '../../components/StatCard.jsx';
@@ -225,6 +227,15 @@ export function ServiceCentreDashboard() {
 
         {/* Dashboard Top Actions */}
         <div className="flex flex-wrap items-center gap-2.5">
+          <Link
+            to="/builder?site=service-centre"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-50 hover:bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:hover:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800 transition-colors shadow-2xs"
+            title="Open and customize Service Centre workflow in Builder"
+          >
+            <Workflow className="w-3.5 h-3.5" />
+            <span>Edit SOP in Builder</span>
+          </Link>
+
           <Button
             size="sm"
             variant="outline"

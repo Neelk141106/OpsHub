@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import LandingThemeProvider from './context/LandingThemeProvider'
 import { useLandingTheme } from './context/useLandingTheme'
 import BlueprintBackground from './components/BlueprintBackground'
@@ -12,9 +12,11 @@ import ProductShowcase from './components/ProductShowcase'
 import PricingSection from './components/PricingSection'
 import CTASection from './components/CTASection'
 import Footer from './components/Footer'
+import WorkspaceSelectionModal from './components/WorkspaceSelectionModal'
 
 function LandingContent() {
   const { isDark } = useLandingTheme()
+  const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false)
 
   useEffect(() => {
     // Set descriptive title for SEO and browser tab
@@ -41,12 +43,12 @@ function LandingContent() {
       <BlueprintBackground />
 
       {/* 2. Fixed Blueprint Navigation Header */}
-      <Navbar />
+      <Navbar onOpenWorkspaceModal={() => setIsWorkspaceModalOpen(true)} />
 
       {/* Main Content Sections */}
       <main className="relative z-10 flex flex-col">
         {/* 3. Hero Section — Main Visual Experience */}
-        <HeroSection />
+        <HeroSection onOpenWorkspaceModal={() => setIsWorkspaceModalOpen(true)} />
 
         {/* 4. Platform Overview — The 3 Connected Sites & Panorama */}
         <PlatformOverview />
@@ -67,11 +69,17 @@ function LandingContent() {
         <PricingSection />
 
         {/* 10. Closing Action CTA */}
-        <CTASection />
+        <CTASection onOpenWorkspaceModal={() => setIsWorkspaceModalOpen(true)} />
       </main>
 
       {/* 10. Engineering Blueprint Footer */}
       <Footer />
+
+      {/* Workspace Selection Modal */}
+      <WorkspaceSelectionModal
+        isOpen={isWorkspaceModalOpen}
+        onClose={() => setIsWorkspaceModalOpen(false)}
+      />
     </div>
   )
 }
